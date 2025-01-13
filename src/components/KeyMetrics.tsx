@@ -19,13 +19,15 @@ const defaultMetrics: Metric[] = [
 ];
 
 const KeyMetrics: React.FC<KeyMetricsProps> = ({
-  metrics = defaultMetrics,
+  metrics,
 }) => {
+  const validMetrics = Array.isArray(metrics) ? metrics : defaultMetrics;
+
   return (
     <div>
       <div className="grid grid-cols-6 gap-4 bg-white shadow p-4 rounded">
         <h2 className="text-xl font-bold mb-4 col-span-6">Portfolio Metrics</h2>
-        {metrics.map((metric) => (
+        {validMetrics.map((metric) => (
           <div
             key={metric.label}
             className="text-center flex flex-col justify-between"

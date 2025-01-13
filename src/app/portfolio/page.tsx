@@ -2,6 +2,7 @@
 
 import { StockData } from '@/interfaces/stock.interface';
 import { investorView } from '@/interfaces/view.interface';
+import { Limit } from '@/interfaces/limit.interface';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AssetsSection from '@/components/AssetsSection';
@@ -9,80 +10,79 @@ import CorrelationMatrixSection from '@/components/CorrelationMatrixSection';
 import InvestorsViewSection from '@/components/InvestorsViewSection';
 import ConstraintSection from '@/components/ConstraintSection';
 import AddViewPopup from '@/components/AddViewPopup';
-import AssetProportion from '@/components/AssetProportion';
-import HistoricalPerformance from '@/components/HistoricalPerformance';
-import KeyMetrics from '@/components/KeyMetrics';
-import Diversification from '@/components/Diversification';
-import MeanVarianceAnalysis from '@/components/MeanVarianceAnalysis';
-import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import NavBar from '@/components/NavBar';
-
-interface Metric {
-  label: string;
-  value: string;
-}
 
 const Portfolio: React.FC = () => {
   const [sliderValue, setSliderValue] = useState(7);
   const [selectedMetric, setSelectedMetric] = useState('return');
+
   const [showPopup, setShowPopup] = useState(false);
-  const [showOptimizePage, setShowOptimizePage] = useState(false);
-  const [portfolioSymbols, setPortfolioSymbols] = useState<string[]>([]);
+  const [validPortfolio, setValidPortfolio] = useState(true);
+
   const [stocksOrder, setStocksOrder] = useState<string[]>([]);
   const [correlationMatrix, setCorrelationMatrix] = useState<number[][]>([]);
-  const [porfolioWeights, setPortfolioWeights] = useState<number[]>([]);
   const [portfolio, setPortfolio] = useState<StockData[]>([]);
   const [investorViews, setInvestorViews] = useState<investorView[]>([]);
-  const [isInitialFetchDone, setIsInitialFetchDone] = useState(false); // Flag to track initial fetch
-  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [isInitialFetchDone, setIsInitialFetchDone] = useState(false);
 
-  const prePortfolioUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL + '/portfolio/pre';
-  const postPortfolioUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL + '/portfolio/post';
+  const [limits, setLimits] = useState<Limit>(() => ({
+    minReturn: 0,
+    maxReturn: 100,
+    minVolatility: 0,
+    maxVolatility: 100,
+  }));
 
-  const defaultMetrics: Metric[] = [
-    { label: 'Metric 1', value: 'Value 1' },
-    { label: 'Metric 2', value: 'Value 2' },
-    { label: 'Metric 3', value: 'Value 3' },
-    { label: 'Metric 4', value: 'Value 4' },
-    { label: 'Metric 5', value: 'Value 5' },
-    { label: 'Metric 6', value: 'Value 6' },
-  ];
+  const PortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/portfolio/';
+  const ViewUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/portfolio/view/';
 
   useEffect(() => {
     const savedPortfolio = JSON.parse(
       localStorage.getItem('portfolio') || '[]'
     );
-    const savedPortfolioSymbols = savedPortfolio.map(
-      (item: { symbol: string }) => item.symbol
-    );
     const savedInvestorViews = JSON.parse(
       localStorage.getItem('investorViews') || '[]'
     );
 
+    if (savedPortfolio.length < 2) {
+      setValidPortfolio(false);
+      return;
+    }
+
     setInvestorViews(savedInvestorViews);
-    setPortfolioSymbols(savedPortfolioSymbols);
+    setPortfolio(savedPortfolio);
 
     const fetchPortfolioPage = async () => {
-      if (!prePortfolioUrl) throw new Error('API URL is not defined');
+      if (!PortfolioUrl) throw new Error('API URL is not defined');
+      const payload = {
+        stocks: savedPortfolio.map((stock: StockData) => stock.symbol),
+        investorViews: savedInvestorViews,
+      };
       try {
-        console.log(savedPortfolioSymbols);
-        const response = await axios.post(prePortfolioUrl, {
-          stocks: savedPortfolioSymbols,
-        });
-        console.log('Pre-portfolio data fetched from API:', response.data);
+        const response = await axios.post(PortfolioUrl, payload);
         setCorrelationMatrix(response.data.correlationMatrix);
         setStocksOrder(response.data.stocks);
+        const reorderedPortfolio = response.data.stocks.map((symbol: string) =>
+          savedPortfolio.find((stock: StockData) => stock.symbol === symbol)
+        );
         const priorReturns = response.data.priorReturns;
-        const enrichedPortfolio: StockData[] = savedPortfolio.map(
+        const posteriorReturns = response.data.posteriorReturns;
+        const responseLimits = response.data.limits;
+        setLimits(responseLimits);
+        setSliderValue(
+          selectedMetric === 'return'
+            ? responseLimits.minReturn
+            : responseLimits.minVolatility
+        );
+
+        const enrichedPortfolio: StockData[] = reorderedPortfolio.map(
           (stock: StockData, index: number) => ({
             ...stock,
-            impliedEqReturn: priorReturns[index],
+            priorReturn: priorReturns[index],
+            posteriorReturn: posteriorReturns[index],
           })
         );
         setPortfolio(enrichedPortfolio);
-        setIsInitialFetchDone(true); 
+        setIsInitialFetchDone(true);
       } catch (error) {
         console.error('Error fetching pre-portfolio data:', error);
       }
@@ -90,6 +90,10 @@ const Portfolio: React.FC = () => {
 
     fetchPortfolioPage();
   }, []);
+
+  useEffect(() => {
+    console.log('Updated limits:', limits); // Log to verify the state is updated
+  }, [limits]);
 
   // Fetch data when the portfolio changes
   const handlePortfolioChange = async (updatedPortfolio: StockData[]) => {
@@ -99,18 +103,74 @@ const Portfolio: React.FC = () => {
     if (!isInitialFetchDone) return;
 
     const updatedPortfolioSymbols = updatedPortfolio.map((item) => item.symbol);
+
+    // Remove investor views related to deleted stocks
+    const updatedViews = investorViews.filter((view) => {
+      return (
+        updatedPortfolioSymbols.includes(view.asset1) &&
+        (!view.asset2 || updatedPortfolioSymbols.includes(view.asset2))
+      );
+    });
+    setInvestorViews(updatedViews);
+    localStorage.setItem('investorViews', JSON.stringify(updatedViews));
+
+    // If the length of updatedPortfolio is less than 2, set impliedEqReturn to 'NaN' and don't send any request
+    if (updatedPortfolio.length < 2) {
+      const enrichedPortfolio: StockData[] = updatedPortfolio.map((stock) => ({
+        ...stock,
+        priorReturn: NaN,
+        posteriorReturn: NaN,
+      }));
+      setPortfolio(enrichedPortfolio);
+      setValidPortfolio(false);
+      setCorrelationMatrix([]);
+      return;
+    }
+
     try {
-      const response = await axios.post(prePortfolioUrl, {
-        stocks: updatedPortfolioSymbols,
+      const response = await axios.post(PortfolioUrl, {
+        stocks: updatedPortfolio.map((stock) => stock.symbol),
+        investorViews: investorViews,
       });
-      console.log('Updated portfolio data fetched from API:', response.data);
       setCorrelationMatrix(response.data.correlationMatrix);
       setStocksOrder(response.data.stocks);
       const priorReturns = response.data.priorReturns;
+      const posteriorReturns = response.data.posteriorReturns;
+      const responseLimits = response.data.limits;
+      setLimits(responseLimits);
+      setSliderValue( (selectedMetric === 'return') ? responseLimits.minReturn : responseLimits.minVolatility)
+
       const enrichedPortfolio: StockData[] = updatedPortfolio.map(
         (stock: StockData, index: number) => ({
           ...stock,
-          impliedEqReturn: priorReturns[index],
+          priorReturn: priorReturns[index],
+          posteriorReturn: posteriorReturns[index],
+        })
+      );
+      setPortfolio(enrichedPortfolio);
+    } catch (error) {
+      console.error('Error fetching updated portfolio data:', error);
+    }
+  };
+
+  const handleViewChange = async (updatedViews: investorView[]) => {
+    try {
+      const response = await axios.post(ViewUrl, {
+        stocks: portfolio.map((stock) => stock.symbol),
+        investorViews: updatedViews,
+      });
+
+      const priorReturns = response.data.priorReturns;
+      const posteriorReturns = response.data.posteriorReturns;
+      const responseLimits = response.data.limits;
+      setLimits(responseLimits);
+      setSliderValue( (selectedMetric === 'return') ? responseLimits.minReturn : responseLimits.minVolatility)
+
+      const enrichedPortfolio: StockData[] = portfolio.map(
+        (stock: StockData, index: number) => ({
+          ...stock,
+          priorReturn: priorReturns[index],
+          posteriorReturn: posteriorReturns[index],
         })
       );
       setPortfolio(enrichedPortfolio);
@@ -120,89 +180,77 @@ const Portfolio: React.FC = () => {
   };
 
   const handleAddView = (newView: investorView) => {
-    setInvestorViews([...investorViews, newView]);
+    const updatedViews = [...investorViews, newView];
+    setInvestorViews(updatedViews);
+    localStorage.setItem('investorViews', JSON.stringify(updatedViews));
+    handleViewChange(updatedViews);
+  };
+
+  const handleRemoveView = (index: number) => {
+    const updatedViews = investorViews.filter((_, i) => i !== index);
+    setInvestorViews(updatedViews);
+    localStorage.setItem('investorViews', JSON.stringify(updatedViews));
+    handleViewChange(updatedViews);
   };
 
   const handleOptimize = async () => {
-    const payload = {
-      stockList: {
-        stocks: portfolioSymbols,
-      },
-      investorViews: investorViews,
-      constraint: {
-        isReturn: selectedMetric === 'return',
-        percentage: sliderValue,
-      },
+    const constraints = {
+      isReturn: selectedMetric == 'return',
+      percentage: sliderValue / 100,
     };
-    const response = await axios.post(postPortfolioUrl, payload);
-    const weights = response.data.weights;
-    setPortfolioWeights(weights);
-    setShowOptimizePage(true);
-	setMetrics(response.data.metrics);
-	console.log(response.data.metrics);
-  };
-
-  const handleGoBack = () => {
-    setShowOptimizePage(false);
+    localStorage.setItem('constraint', JSON.stringify(constraints));
+    window.location.href = '/optimize';
   };
 
   return (
     <div className="bg-gray-100 min-h-screen w-full text-black">
       <NavBar />
       <div className="w-full max-w-screen-lg mx-auto bg-white min-h-screen p-6">
-        {showOptimizePage ? (
-          <div>
-            <button onClick={handleGoBack} className="flex items-center mb-4">
-              <ArrowLeftIcon className="h-5 w-5 mr-2" />
-              <span>Back</span>
-            </button>
-            <div className="grid grid-cols-2 gap-4">
-              <AssetProportion
-                Labels={portfolioSymbols}
-                Values={porfolioWeights}
+        <div>
+          <AssetsSection
+            header="Stocks"
+            portfolio={portfolio}
+            excludeFields={['sector', 'industry']}
+            handlePortfolioChange={handlePortfolioChange}
+          />
+          {validPortfolio ? (
+            <>
+              <CorrelationMatrixSection
+                correlationMatrix={correlationMatrix}
+                stocksOrder={stocksOrder}
               />
-              <Diversification />
+              <InvestorsViewSection
+                investorViews={investorViews}
+                setShowPopup={setShowPopup}
+                onRemoveView={handleRemoveView}
+              />
+              <ConstraintSection
+                limits={limits}
+                selectedMetric={selectedMetric}
+                setSelectedMetric={setSelectedMetric}
+                sliderValue={sliderValue}
+                setSliderValue={setSliderValue}
+              />
+              <button
+                className="mt-4 bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800"
+                onClick={handleOptimize}
+              >
+                Optimize
+              </button>
+            </>
+          ) : (
+            <div className="text-red-500">
+              Please add at least 2 stocks to the portfolio to view the
+              correlation matrix and other details.
             </div>
-            <div className="py-4">
-              <KeyMetrics metrics={metrics} />
-            </div>
-            <div className="py-4">
-              <HistoricalPerformance />
-            </div>
-            <div className="py-4">
-              <MeanVarianceAnalysis />
-            </div>
-          </div>
-        ) : (
-          <div>
-            <AssetsSection
-              portfolio={portfolio}
-              showImpliedEqReturn={true}
-              handlePortfolioChange={handlePortfolioChange}
-            />
-            <CorrelationMatrixSection
-              correlationMatrix={correlationMatrix}
-              stocksOrder={stocksOrder}
-            />
-            <InvestorsViewSection
-              investorViews={investorViews}
-              setShowPopup={setShowPopup}
-            />
-            <ConstraintSection
-              selectedMetric={selectedMetric}
-              setSelectedMetric={setSelectedMetric}
-              sliderValue={sliderValue}
-              setSliderValue={setSliderValue}
-              handleOptimize={handleOptimize}
-            />
-            <AddViewPopup
-              isVisible={showPopup}
-              onClose={() => setShowPopup(false)}
-              onSave={handleAddView}
-              portfolio={portfolioSymbols.map((symbol) => ({ symbol }))}
-            />
-          </div>
-        )}
+          )}
+          <AddViewPopup
+            isVisible={showPopup}
+            onClose={() => setShowPopup(false)}
+            onSave={handleAddView}
+            portfolio={portfolio.map((stock) => ({ symbol: stock.symbol }))}
+          />
+        </div>
       </div>
     </div>
   );

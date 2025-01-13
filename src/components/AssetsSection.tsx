@@ -1,65 +1,104 @@
 import React from 'react';
-import AddRemoveButton from './AddRemoveButton';
+import AddRemoveStock from './AddRemoveStock'; // Assuming you have this component
 import { StockData } from '@/interfaces/stock.interface';
 
-type AssetsSectionProps = {
+interface AssetsSectionProps {
   portfolio: StockData[];
-  showImpliedEqReturn?: boolean; // Optional prop to toggle column visibility
-  handlePortfolioChange: (updatedPortfolio: StockData[]) => void; // Prop for handling portfolio changes
-};
+  excludeFields?: string[];
+  header: string;
+  handlePortfolioChange: (updatedPortfolio: StockData[]) => void;
+}
 
-const AssetsSection: React.FC<AssetsSectionProps> = ({ portfolio, showImpliedEqReturn = false, handlePortfolioChange }) => {
+const AssetsSection: React.FC<AssetsSectionProps> = ({
+  portfolio,
+  excludeFields = [],
+  header,
+  handlePortfolioChange,
+}) => {
+  const fields = [
+    'symbol',
+    'price',
+    'annualReturn', // New column
+    'annual5YrsReturn',
+    'annual3YrsReturn',
+    'annual1YrReturn',
+    'ytdReturn',
+    'sector',
+    'industry',
+    'marketCap',
+    'priorReturn',
+    'posteriorReturn',
+  ];
+
+  const renderField = (item: StockData, field: string) => {
+    if (field === 'annualReturn') {
+      return ''; // Leave the new "Annual Return" column blank
+    }
+
+    const value = item[field as keyof StockData];
+    if (
+      value === null ||
+      value === undefined ||
+      (typeof value === 'number' && isNaN(value))
+    ) {
+      return 'NaN';
+    }
+    return value;
+  };
+
   return (
-    <section className="mb-8">
-      <h2 className="text-xl font-bold mb-4">Assets</h2>
-      {portfolio.length === 0 ? (
-        <p>No stocks in your portfolio yet.</p>
-      ) : (
-        <table className="w-full bg-white border border-gray-200 shadow-md rounded-lg">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="px-4 py-2 border-b">Symbol</th>
-              <th className="px-4 py-2 border-b">Price</th>
-              <th className="px-4 py-2 border-b">5Y Annual Return</th>
-              <th className="px-4 py-2 border-b">3Y Annual Return</th>
-              <th className="px-4 py-2 border-b">1Y Annual Return</th>
-              <th className="px-4 py-2 border-b">YTD Return</th>
-              <th className="px-4 py-2 border-b">Sector</th>
-              <th className="px-4 py-2 border-b">Industry</th>
-              <th className="px-4 py-2 border-b">Market Cap</th>
-              {showImpliedEqReturn && (
-                <th className="px-4 py-2 border-b">Implied Eq Return</th>
-              )}
-              <th className="px-4 py-2 border-b">Action</th>
+    <div className="p-4">
+      {' '}
+      {/* Add padding here */}
+      <h1 className="text-2xl font-bold mb-6">{header}</h1>
+      <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
+        <thead>
+          <tr className="bg-gray-200 text-left">
+            {fields.map((field) => {
+              if (excludeFields.includes(field)) return null;
+
+              // Rename specific fields in the header
+              const displayName =
+                {
+                  annual5YrsReturn: '5y',
+                  annual3YrsReturn: '3y',
+                  annual1YrReturn: '1y',
+                  annualReturn: 'Ann. Return',
+                }[field] || field;
+
+              // Capitalize the first character if it's a letter
+              const capitalizedDisplayName =
+                displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
+              return (
+                <th key={field} className="px-2 py-1 border-b text-center">
+                  {capitalizedDisplayName}
+                </th>
+              );
+            })}
+            <th className="px-2 py-1 border-b text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {portfolio.map((item) => (
+            <tr key={item._id} className="hover:bg-gray-50">
+              {fields.map((field) => {
+                if (excludeFields.includes(field)) return null;
+
+                return (
+                  <td key={field} className="px-2 py-1 border-b text-center">
+                    {renderField(item, field)}
+                  </td>
+                );
+              })}
+              <td className="px-2 py-1 border-b text-center">
+                <AddRemoveStock stock={item} onChange={handlePortfolioChange} />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {portfolio.map((item) => (
-              <tr key={item._id} className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b">{item.symbol}</td>
-                <td className="px-4 py-2 border-b">{item.price}</td>
-                <td className="px-4 py-2 border-b">{item.annual5YrsReturn}</td>
-                <td className="px-4 py-2 border-b">{item.annual3YrsReturn}</td>
-                <td className="px-4 py-2 border-b">{item.annual1YrReturn}</td>
-                <td className="px-4 py-2 border-b">{item.ytdReturn ?? 'N/A'}</td>
-                <td className="px-4 py-2 border-b">{item.sector}</td>
-                <td className="px-4 py-2 border-b">{item.industry}</td>
-                <td className="px-4 py-2 border-b">{item.marketCap}</td>
-                {showImpliedEqReturn && (
-                  <td className="px-4 py-2 border-b">{item.impliedEqReturn}</td>
-                )}
-                <td className="px-4 py-2 border-b">
-                  <AddRemoveButton
-                    stock={item}
-                    onChange={(updatedPortfolio) => handlePortfolioChange(updatedPortfolio)}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </section>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 

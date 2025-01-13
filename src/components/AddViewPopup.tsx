@@ -18,7 +18,7 @@ const AddViewPopup: React.FC<AddViewPopupProps> = ({
     asset1: '',
     asset2: '',
     percentage: '',
-    confident: '',
+    confidence: '',
   });
 
   if (!isVisible) return null;
@@ -28,8 +28,9 @@ const AddViewPopup: React.FC<AddViewPopupProps> = ({
       asset1: view.asset1,
       asset2: view.asset2 || undefined,
       percentage: view.percentage,
-      confident: view.confident,
+      confidence: view.confidence,
     });
+    setView({ asset1: '', asset2: '', percentage: '', confidence: '' });
     onClose();
   };
 
@@ -63,11 +64,13 @@ const AddViewPopup: React.FC<AddViewPopupProps> = ({
               className="w-full border px-3 py-2 rounded-lg"
             >
               <option value="">Select Asset 2 (Optional)</option>
-              {portfolio.map((asset) => (
-                <option key={asset.symbol} value={asset.symbol}>
-                  {asset.symbol}
-                </option>
-              ))}
+              {portfolio
+                .filter((asset) => asset.symbol !== view.asset1) // Filter out the selected Asset 1
+                .map((asset) => (
+                  <option key={asset.symbol} value={asset.symbol}>
+                    {asset.symbol}
+                  </option>
+                ))}
             </select>
           </div>
           <div>
@@ -84,8 +87,8 @@ const AddViewPopup: React.FC<AddViewPopupProps> = ({
             <label className="block mb-2">Confidence Level (%)</label>
             <input
               type="number"
-              value={view.confident}
-              onChange={(e) => setView({ ...view, confident: e.target.value })}
+              value={view.confidence}
+              onChange={(e) => setView({ ...view, confidence: e.target.value })}
               className="w-full border px-3 py-2 rounded-lg"
               placeholder="e.g., 90"
             />

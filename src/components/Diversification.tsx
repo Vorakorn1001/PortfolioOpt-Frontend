@@ -2,23 +2,14 @@ import { Sankey, Tooltip } from 'recharts';
 import Node from './Node';
 import Link from './Link';
 
-const data = {
-  nodes: [
-    { name: 'Portfolio 100%' },
-    { name: 'Place Holder-1' },
-    { name: 'Place Holder-2' },
-    { name: 'Place Holder-3' },
-    // Add more nodes
-  ],
-  links: [
-    { source: 0, target: 1, value: 1 },
-    { source: 0, target: 2, value: 1 },
-    { source: 0, target: 3, value: 1 },
-    // Add more links
-  ],
-};
+interface DiversificationProps {
+  data: {
+    nodes: { name: string }[];
+    links: { source: number; target: number; value: number }[];
+  };
+}
 
-const Diversification = () => {
+const Diversification: React.FC<DiversificationProps> = ({ data }) => {
   return (
     <div className="bg-white shadow p-4 rounded">
       <h2 className="text-xl font-bold text-black">Diversification</h2>

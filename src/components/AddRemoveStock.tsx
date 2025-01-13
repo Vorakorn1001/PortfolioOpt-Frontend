@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { homePageStockData } from '@/interfaces/stock.interface';
+import { StockData } from '@/interfaces/stock.interface';
 
 interface AddRemoveButtonProps {
-  stock: homePageStockData;
-  onChange: (updatedPortfolio: homePageStockData[]) => void; // Callback to update parent state
+  stock: StockData;
+  onChange: (updatedPortfolio: StockData[]) => void; // Callback to update parent state
 }
 
 const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
@@ -15,9 +15,7 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
   useEffect(() => {
     // Check if the stock is already in the portfolio
     const portfolio = JSON.parse(localStorage.getItem('portfolio') || '[]');
-    const exists = portfolio.some(
-      (item: homePageStockData) => item._id === stock._id
-    );
+    const exists = portfolio.some((item: StockData) => item._id === stock._id);
     setIsInPortfolio(exists);
   }, [stock]);
 
@@ -32,26 +30,23 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
   const handleRemove = () => {
     const portfolio = JSON.parse(localStorage.getItem('portfolio') || '[]');
     const updatedPortfolio = portfolio.filter(
-      (item: homePageStockData) => item._id !== stock._id
+      (item: StockData) => item._id !== stock._id
     );
     localStorage.setItem('portfolio', JSON.stringify(updatedPortfolio));
     setIsInPortfolio(false);
     onChange(updatedPortfolio); // Notify parent about the change
   };
 
-  return isInPortfolio ? (
+  return (
     <button
-      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-400"
-      onClick={handleRemove}
+      className={`w-48 px-4 py-2 rounded text-white transition-colors duration-300 ${
+        isInPortfolio
+          ? 'bg-red-500 hover:bg-red-400'
+          : 'bg-blue-500 hover:bg-blue-400'
+      }`}
+      onClick={isInPortfolio ? handleRemove : handleAdd}
     >
-      Remove from Portfolio
-    </button>
-  ) : (
-    <button
-      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-400"
-      onClick={handleAdd}
-    >
-      Add to Portfolio
+      {isInPortfolio ? 'Remove from Portfolio' : 'Add to Portfolio'}
     </button>
   );
 };

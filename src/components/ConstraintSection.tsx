@@ -1,11 +1,12 @@
 import React from 'react';
+import { Limit } from '@/interfaces/limit.interface';
 
 interface ConstraintSectionProps {
   selectedMetric: string;
   setSelectedMetric: React.Dispatch<React.SetStateAction<string>>;
   sliderValue: number;
   setSliderValue: React.Dispatch<React.SetStateAction<number>>;
-  handleOptimize: () => void;
+  limits: Limit;
 }
 
 const ConstraintSection: React.FC<ConstraintSectionProps> = ({
@@ -13,11 +14,22 @@ const ConstraintSection: React.FC<ConstraintSectionProps> = ({
   setSelectedMetric,
   sliderValue,
   setSliderValue,
-  handleOptimize,
+  limits,
 }) => {
+  const { minReturn, maxReturn, minVolatility, maxVolatility } = limits;
+  const min = selectedMetric === 'return' ? minReturn : minVolatility;
+  const max = selectedMetric === 'return' ? maxReturn : maxVolatility;
+
+  const handleChange = (select: string) => {
+    setSelectedMetric(select);
+    setSliderValue(
+      select === 'return' ? limits.minReturn : limits.minVolatility
+    );
+  };
+
   return (
     <section>
-      <h2 className="text-xl font-bold mb-4">Restraint</h2>
+      <h2 className="text-xl font-bold mb-4">Constraints</h2>
       <div className="flex items-center gap-4">
         <div>
           <label className="block mb-2">
@@ -26,7 +38,7 @@ const ConstraintSection: React.FC<ConstraintSectionProps> = ({
               name="metric"
               value="return"
               checked={selectedMetric === 'return'}
-              onChange={() => setSelectedMetric('return')}
+              onChange={() => handleChange('return')}
             />
             Expected Return
           </label>
@@ -36,7 +48,7 @@ const ConstraintSection: React.FC<ConstraintSectionProps> = ({
               name="metric"
               value="volatility"
               checked={selectedMetric === 'volatility'}
-              onChange={() => setSelectedMetric('volatility')}
+              onChange={() => handleChange('volatility')}
             />
             Volatility
           </label>
@@ -44,8 +56,8 @@ const ConstraintSection: React.FC<ConstraintSectionProps> = ({
         <div className="flex-1">
           <input
             type="range"
-            min="0"
-            max="100"
+            min={min}
+            max={max}
             className="w-full"
             value={sliderValue}
             onChange={(e) => setSliderValue(Number(e.target.value))}
@@ -53,12 +65,6 @@ const ConstraintSection: React.FC<ConstraintSectionProps> = ({
           <p className="text-center mt-2">Adjust level: {sliderValue}%</p>
         </div>
       </div>
-      <button
-        className="mt-4 bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800"
-        onClick={handleOptimize}
-      >
-        Optimize
-      </button>
     </section>
   );
 };

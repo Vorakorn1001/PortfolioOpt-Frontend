@@ -9,10 +9,9 @@ import {
   Title,
   Tooltip,
   Legend,
-  TimeSeriesScale,
-  CategoryScale,
+  TimeScale,
 } from 'chart.js';
-
+import 'chartjs-adapter-date-fns';
 import { Line } from 'react-chartjs-2';
 
 // Register required components with Chart.js
@@ -21,23 +20,43 @@ Chart.register(
   LineElement,
   PointElement,
   LinearScale,
-  TimeSeriesScale,
-  CategoryScale,
+  TimeScale,
   Title,
   Tooltip,
   Legend
 );
 
-const HistoricalPerformance = () => {
+interface PortfolioVsMarket {
+  days: string[]; // Array of dates in 'YYYY-MM-DD' format
+  portfolio: number[]; // Portfolio returns
+  market: number[]; // Market returns
+}
+
+interface HistoricalPerformanceProps {
+  portfolioVsMarket: PortfolioVsMarket; // Prop containing data
+}
+
+const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
+  portfolioVsMarket,
+}) => {
+  const { days, portfolio, market } = portfolioVsMarket;
+
   const data = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+    labels: days,
     datasets: [
       {
         label: 'Portfolio Performance',
-        data: [100, 110, 105, 115, 120, 118, 125],
+        data: portfolio,
         borderColor: '#36A2EB',
         backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        tension: 0.4, // Makes the line smooth
+        tension: 0.1, // Smooth line
+      },
+      {
+        label: 'Market Performance',
+        data: market,
+        borderColor: '#FF6384',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        tension: 0.1, // Smooth line
       },
     ],
   };
@@ -50,12 +69,19 @@ const HistoricalPerformance = () => {
     },
     scales: {
       x: {
-        type: 'category', // Replace with appropriate type
-        title: { display: true, text: 'X Axis' },
+        type: 'time',
+        title: { display: true, text: 'Date' },
+        time: {
+          unit: 'month',
+          displayFormats: { month: 'MMM yyyy' },
+        },
       },
       y: {
-        type: 'linear', // Replace with appropriate type
-        title: { display: true, text: 'Y Axis' },
+        type: 'linear',
+        title: { display: true, text: 'Performance (%)' },
+        ticks: {
+          callback: (value) => `${value}%`,
+        },
       },
     },
   };

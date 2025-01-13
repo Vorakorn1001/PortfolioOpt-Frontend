@@ -10,6 +10,6 @@ export interface StockData {
   sector: string;
   industry: string;
   marketCap: number;
-  impliedEqReturn: number | null;
+  priorReturn: number | null;
+  posteriorReturn: number | null;
 }
-
