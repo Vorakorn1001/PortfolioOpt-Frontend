@@ -1,7 +1,7 @@
 'use client';
 
 import { StockData } from '@/interfaces/stock.interface';
-import { investorView } from '@/interfaces/view.interface';
+import OptimizeSkeleton from '@/components/OptimizeSkeleton';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AssetProportion from '@/components/AssetProportion';
@@ -10,20 +10,11 @@ import KeyMetrics from '@/components/KeyMetrics';
 import Diversification from '@/components/Diversification';
 import MeanVarianceAnalysis from '@/components/MeanVarianceAnalysis';
 import NavBar from '@/components/NavBar';
-
-interface Metric {
-  label: string;
-  value: string;
-}
+import { Metric } from '@/interfaces/metric.interface';
 
 const data = {
-  nodes: [
-    { name: 'Portfolio 100%' },
-    { name: 'Place Holder-1' },
-  ],
-  links: [
-    { source: 0, target: 1, value: 1 },
-  ],
+  nodes: [{ name: 'Portfolio 100%' }, { name: 'Place Holder-1' }],
+  links: [{ source: 0, target: 1, value: 1 }],
 };
 
 const portfolioVsMarket = {
@@ -42,38 +33,39 @@ const portfolioVsMarket = {
 
 const sampleData = [
   {
-    weight: [0.2, 0.3, 0.5], // Example portfolio weights
-    return: 0.08, // Portfolio return
-    volatility: 0.12, // Portfolio volatility
-    sharpeRatio: 1.5, // Portfolio Sharpe ratio
+    weight: [0.2, 0.3, 0.5],
+    return: 0.08,
+    volatility: 0.12,
+    sharpeRatio: 1.5,
   },
   {
-    weight: [0.4, 0.1, 0.5], // Example portfolio weights
-    return: 0.1, // Portfolio return
-    volatility: 0.15, // Portfolio volatility
-    sharpeRatio: 1.2, // Portfolio Sharpe ratio
+    weight: [0.4, 0.1, 0.5],
+    return: 0.1,
+    volatility: 0.15,
+    sharpeRatio: 1.2,
   },
   {
-    weight: [0.3, 0.3, 0.4], // Example portfolio weights
-    return: 0.07, // Portfolio return
-    volatility: 0.1, // Portfolio volatility
-    sharpeRatio: 1.0, // Portfolio Sharpe ratio
+    weight: [0.3, 0.3, 0.4],
+    return: 0.07,
+    volatility: 0.1,
+    sharpeRatio: 1.0,
   },
   {
-    weight: [0.1, 0.5, 0.4], // Example portfolio weights
-    return: 0.12, // Portfolio return
-    volatility: 0.18, // Portfolio volatility
-    sharpeRatio: 0.8, // Portfolio Sharpe ratio
+    weight: [0.1, 0.5, 0.4],
+    return: 0.12,
+    volatility: 0.18,
+    sharpeRatio: 0.8,
   },
   {
-    weight: [0.3, 0.4, 0.3], // Example portfolio weights
-    return: 0.09, // Portfolio return
-    volatility: 0.14, // Portfolio volatility
-    sharpeRatio: 1.3, // Portfolio Sharpe ratio
+    weight: [0.3, 0.4, 0.3],
+    return: 0.09,
+    volatility: 0.14,
+    sharpeRatio: 1.3,
   },
 ];
 
 const Portfolio: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [stocksOrder, setStocksOrder] = useState<string[]>([]);
   const [porfolioWeights, setPortfolioWeights] = useState<number[]>([]);
   const [portfolioMetrics, setPortfolioMetrics] = useState<Metric[]>([]);
@@ -110,7 +102,8 @@ const Portfolio: React.FC = () => {
         setDiversificationData(response.data.diversification);
         setPortfolioMetrics(response.data.metrics);
         setPortfolioVsMarketData(response.data.portfolioVsMarket);
-        setMeanVarianceAnalysisData(response.data.meanVarianceGraph);        
+        setMeanVarianceAnalysisData(response.data.meanVarianceGraph);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching pre-portfolio data:', error);
       }
@@ -123,12 +116,23 @@ const Portfolio: React.FC = () => {
     if (!changeUrl) throw new Error('API URL is not defined');
     const response = await axios.post(changeUrl, {
       stocks: stocksOrder,
-      weights: weights
+      weights: weights,
     });
     setPortfolioWeights(response.data.weights);
     setDiversificationData(response.data.diversification);
     setPortfolioMetrics(response.data.metrics);
     setPortfolioVsMarketData(response.data.portfolioVsMarket);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="bg-gray-100 min-h-screen w-full text-black">
+        <NavBar />
+        <div className="w-full max-w-screen-lg mx-auto bg-white min-h-screen p-6">
+          <OptimizeSkeleton />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -146,9 +150,10 @@ const Portfolio: React.FC = () => {
           <HistoricalPerformance portfolioVsMarket={portfolioVsMarketData} />
         </div>
         <div className="py-4">
-          <MeanVarianceAnalysis 
-          data={MeanVarianceAnalysisData}
-          setWeight={handleWeightChange} />
+          <MeanVarianceAnalysis
+            data={MeanVarianceAnalysisData}
+            setWeight={handleWeightChange}
+          />
         </div>
       </div>
     </div>

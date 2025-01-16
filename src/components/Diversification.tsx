@@ -9,6 +9,13 @@ interface DiversificationProps {
   };
 }
 
+const CustomTooltip = ({ active }: any) => {
+  if (active) {
+    return null; // Return null to hide the tooltip entirely
+  }
+  return null;
+};
+
 const Diversification: React.FC<DiversificationProps> = ({ data }) => {
   return (
     <div className="bg-white shadow p-4 rounded">
@@ -24,8 +31,9 @@ const Diversification: React.FC<DiversificationProps> = ({ data }) => {
         link={<Link />}
         node={<Node containerWidth={400} />}
       >
-        <Tooltip />
+        <Tooltip content={<CustomTooltip />} />
       </Sankey>
+      ;
     </div>
   );
 };

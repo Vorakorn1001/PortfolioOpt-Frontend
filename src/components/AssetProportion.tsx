@@ -11,12 +11,11 @@ interface AssetProportionProps {
   cutout?: string | number;
 }
 
-const AssetProportion: React.FC<AssetProportionProps> =({
+const AssetProportion: React.FC<AssetProportionProps> = ({
   Labels,
   Values,
   cutout,
 }) => {
-
   const [labels, setLabels] = useState<string[]>(['NVDA', 'TSLA', 'AAPL']);
   const [data, setData] = useState<number[]>([50, 25, 25]);
 
@@ -24,7 +23,7 @@ const AssetProportion: React.FC<AssetProportionProps> =({
     if (Labels.length) {
       setLabels(Labels);
     }
-  
+
     if (Values.length) {
       setData(Values.map((value) => value * 100));
     }

@@ -18,9 +18,7 @@ const defaultMetrics: Metric[] = [
   { label: 'Metric 6', value: 'Value 6' },
 ];
 
-const KeyMetrics: React.FC<KeyMetricsProps> = ({
-  metrics,
-}) => {
+const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics }) => {
   const validMetrics = Array.isArray(metrics) ? metrics : defaultMetrics;
 
   return (

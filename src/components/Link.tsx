@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Layer } from 'recharts';
 
-export default class Demo extends Component<any, any> {
+export default class Link extends Component<any, any> {
   static displayName = 'SankeyLinkDemo';
 
   state = {
@@ -24,17 +24,15 @@ export default class Demo extends Component<any, any> {
     return (
       <Layer key={`CustomLink${index}`}>
         <path
-          d={`
-                        M${sourceX},${sourceY + linkWidth / 2}
-                        C${sourceControlX},${sourceY + linkWidth / 2}
-                            ${targetControlX},${targetY + linkWidth / 2}
-                            ${targetX},${targetY + linkWidth / 2}
-                        L${targetX},${targetY - linkWidth / 2}
-                        C${targetControlX},${targetY - linkWidth / 2}
-                            ${sourceControlX},${sourceY - linkWidth / 2}
-                            ${sourceX},${sourceY - linkWidth / 2}
-                        Z
-                    `}
+          d={`M${sourceX},${sourceY + linkWidth / 2}
+              C${sourceControlX},${sourceY + linkWidth / 2}
+               ${targetControlX},${targetY + linkWidth / 2}
+               ${targetX},${targetY + linkWidth / 2}
+              L${targetX},${targetY - linkWidth / 2}
+              C${targetControlX},${targetY - linkWidth / 2}
+               ${sourceControlX},${sourceY - linkWidth / 2}
+               ${sourceX},${sourceY - linkWidth / 2}
+              Z`}
           fill={fill}
           strokeWidth="0"
           onMouseEnter={() => {

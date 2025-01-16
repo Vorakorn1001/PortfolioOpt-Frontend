@@ -1,18 +1,18 @@
 import React from 'react';
 import AddRemoveStock from './AddRemoveStock'; // Assuming you have this component
+import Skeleton from 'react-loading-skeleton'; // Import Skeleton
+import 'react-loading-skeleton/dist/skeleton.css'; // Import Skeleton styles
 import { StockData } from '@/interfaces/stock.interface';
 
 interface AssetsSectionProps {
   portfolio: StockData[];
   excludeFields?: string[];
-  header: string;
   handlePortfolioChange: (updatedPortfolio: StockData[]) => void;
 }
 
 const AssetsSection: React.FC<AssetsSectionProps> = ({
   portfolio,
   excludeFields = [],
-  header,
   handlePortfolioChange,
 }) => {
   const fields = [
@@ -35,6 +35,15 @@ const AssetsSection: React.FC<AssetsSectionProps> = ({
       return ''; // Leave the new "Annual Return" column blank
     }
 
+    if (field === 'priorReturn' || field === 'posteriorReturn') {
+      const value = item[field as keyof StockData];
+      return value === null || value === undefined ? (
+        <Skeleton width={50} height={20} /> // Skeleton loader
+      ) : (
+        value
+      );
+    }
+
     const value = item[field as keyof StockData];
     if (
       value === null ||
@@ -48,9 +57,6 @@ const AssetsSection: React.FC<AssetsSectionProps> = ({
 
   return (
     <div className="p-4">
-      {' '}
-      {/* Add padding here */}
-      <h1 className="text-2xl font-bold mb-6">{header}</h1>
       <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
         <thead>
           <tr className="bg-gray-200 text-left">
@@ -66,7 +72,6 @@ const AssetsSection: React.FC<AssetsSectionProps> = ({
                   annualReturn: 'Ann. Return',
                 }[field] || field;
 
-              // Capitalize the first character if it's a letter
               const capitalizedDisplayName =
                 displayName.charAt(0).toUpperCase() + displayName.slice(1);
 
