@@ -83,8 +83,8 @@ const Home: React.FC = () => {
     <div className="bg-gray-100 min-h-screen w-full text-black">
       <NavBar />
       <div className="w-full max-w-screen-lg mx-auto bg-white min-h-screen p-6">
+      <h1 className="text-2xl font-bold">Stocks</h1>
         <AssetsSection
-          header="Stocks"
           portfolio={assets}
           excludeFields={[
             'price',

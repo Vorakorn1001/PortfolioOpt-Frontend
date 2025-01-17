@@ -28,8 +28,10 @@ const Portfolio: React.FC = () => {
 
   const [stocksOrder, setStocksOrder] = useState<string[]>([]);
   const [correlationMatrix, setCorrelationMatrix] = useState<number[][]>([]);
+
   const [portfolio, setPortfolio] = useState<StockData[]>([]);
   const [investorViews, setInvestorViews] = useState<investorView[]>([]);
+  
   const [isInitialFetchDone, setIsInitialFetchDone] = useState(false);
   const [limits, setLimits] = useState<Limit>(() => ({
     minReturn: 0,
@@ -133,7 +135,7 @@ const Portfolio: React.FC = () => {
     try {
       const response = await axios.post(PortfolioUrl, {
         stocks: updatedPortfolio.map((stock) => stock.symbol),
-        investorViews: investorViews,
+        investorViews: updatedViews,
       });
       setCorrelationMatrix(response.data.correlationMatrix);
       setStocksOrder(response.data.stocks);

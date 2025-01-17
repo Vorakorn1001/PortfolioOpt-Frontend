@@ -39,10 +39,10 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
 
   return (
     <button
-      className={`w-48 px-4 py-2 rounded text-white transition-colors duration-300 ${
-        isInPortfolio
-          ? 'bg-red-500 hover:bg-red-400'
-          : 'bg-blue-500 hover:bg-blue-400'
+      className={`w-48 h-16 px-4 py-2 rounded text-white transition-colors duration-300 ${
+      isInPortfolio
+        ? 'bg-red-500 hover:bg-red-400'
+        : 'bg-blue-500 hover:bg-blue-400'
       }`}
       onClick={isInPortfolio ? handleRemove : handleAdd}
     >

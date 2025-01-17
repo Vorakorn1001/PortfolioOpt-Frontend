@@ -71,4 +71,4 @@ const InvestorsViewSection: React.FC<InvestorsViewSectionProps> = ({
   );
 };
 
-export default React.memo(InvestorsViewSection);
+export default InvestorsViewSection;
