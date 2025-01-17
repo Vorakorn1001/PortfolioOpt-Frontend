@@ -1,4 +1,4 @@
-export interface StockData {
+export default interface StockData {
   _id: string;
   symbol: string;
   name: string;

@@ -1,4 +1,4 @@
-export interface Limit {
+export default interface Limit {
   minReturn: number;
   maxReturn: number;
   minVolatility: number;

@@ -2,7 +2,7 @@ import React from 'react';
 import AddRemoveStock from './AddRemoveStock'; // Assuming you have this component
 import Skeleton from 'react-loading-skeleton'; // Import Skeleton
 import 'react-loading-skeleton/dist/skeleton.css'; // Import Skeleton styles
-import { StockData } from '@/interfaces/stock.interface';
+import StockData from '@/interfaces/stock.interface';
 
 interface AssetsSectionProps {
   portfolio: StockData[];
@@ -97,7 +97,10 @@ const AssetsSection: React.FC<AssetsSectionProps> = ({
                 );
               })}
               <td className="px-2 py-1 border-b text-center">
-                <AddRemoveStock stock={item} onChange={handlePortfolioChange} />
+                <AddRemoveStock 
+                  stock={item} 
+                  onChange={handlePortfolioChange} 
+                />
               </td>
             </tr>
           ))}

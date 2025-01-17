@@ -1,4 +1,4 @@
-export interface investorView {
+export default interface InvestorView {
   asset1: string;
   asset2?: string;
   percentage: number | string;
