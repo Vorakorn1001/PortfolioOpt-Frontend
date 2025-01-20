@@ -1,4 +1,4 @@
 export default interface Metric {
-  label: string;
-  value: string;
+    label: string;
+    value: string;
 }

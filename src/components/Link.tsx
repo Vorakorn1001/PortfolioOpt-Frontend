@@ -2,29 +2,29 @@ import React, { Component } from 'react';
 import { Layer } from 'recharts';
 
 export default class Link extends Component<any, any> {
-  static displayName = 'SankeyLinkDemo';
+    static displayName = 'SankeyLinkDemo';
 
-  state = {
-    fill: 'lightgrey',
-  };
+    state = {
+        fill: 'lightgrey',
+    };
 
-  render() {
-    const {
-      sourceX,
-      targetX,
-      sourceY,
-      targetY,
-      sourceControlX,
-      targetControlX,
-      linkWidth,
-      index,
-    } = this.props;
-    const { fill } = this.state;
+    render() {
+        const {
+            sourceX,
+            targetX,
+            sourceY,
+            targetY,
+            sourceControlX,
+            targetControlX,
+            linkWidth,
+            index,
+        } = this.props;
+        const { fill } = this.state;
 
-    return (
-      <Layer key={`CustomLink${index}`}>
-        <path
-          d={`M${sourceX},${sourceY + linkWidth / 2}
+        return (
+            <Layer key={`CustomLink${index}`}>
+                <path
+                    d={`M${sourceX},${sourceY + linkWidth / 2}
               C${sourceControlX},${sourceY + linkWidth / 2}
                ${targetControlX},${targetY + linkWidth / 2}
                ${targetX},${targetY + linkWidth / 2}
@@ -33,20 +33,20 @@ export default class Link extends Component<any, any> {
                ${sourceControlX},${sourceY - linkWidth / 2}
                ${sourceX},${sourceY - linkWidth / 2}
               Z`}
-          fill={fill}
-          strokeWidth="0"
-          onMouseEnter={() => {
-            this.setState({
-              fill: 'rgba(0, 136, 254, 0.5)',
-            });
-          }}
-          onMouseLeave={() => {
-            this.setState({
-              fill: 'lightgrey',
-            });
-          }}
-        />
-      </Layer>
-    );
-  }
+                    fill={fill}
+                    strokeWidth="0"
+                    onMouseEnter={() => {
+                        this.setState({
+                            fill: 'rgba(0, 136, 254, 0.5)',
+                        });
+                    }}
+                    onMouseLeave={() => {
+                        this.setState({
+                            fill: 'lightgrey',
+                        });
+                    }}
+                />
+            </Layer>
+        );
+    }
 }

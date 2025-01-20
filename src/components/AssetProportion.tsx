@@ -6,71 +6,77 @@ import { Doughnut } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface AssetProportionProps {
-  Labels: string[];
-  Values: number[];
-  cutout?: string | number;
+    Labels: string[];
+    Values: number[];
+    cutout?: string | number;
 }
 
 const AssetProportion: React.FC<AssetProportionProps> = ({
-  Labels,
-  Values,
-  cutout,
+    Labels,
+    Values,
+    cutout,
 }) => {
-  const [labels, setLabels] = useState<string[]>(['NVDA', 'TSLA', 'AAPL']);
-  const [data, setData] = useState<number[]>([50, 25, 25]);
+    const [labels, setLabels] = useState<string[]>(['NVDA', 'TSLA', 'AAPL']);
+    const [data, setData] = useState<number[]>([50, 25, 25]);
 
-  useEffect(() => {
-    if (Labels.length) {
-      setLabels(Labels);
-    }
+    useEffect(() => {
+        if (Labels.length) {
+            setLabels(Labels);
+        }
 
-    if (Values.length) {
-      setData(Values.map((value) => value * 100));
-    }
-  }, [Labels, Values]);
+        if (Values.length) {
+            setData(Values.map((value) => value * 100));
+        }
+    }, [Labels, Values]);
 
-  const chartData = {
-    labels,
-    datasets: [
-      {
-        label: 'Asset Proportion',
-        data,
-        backgroundColor: [
-          '#FF6384',
-          '#36A2EB',
-          '#FFCE56',
-          '#4BC0C0',
-          '#9966FF',
-          '#FF9F40',
-          '#FF6384',
+    const chartData = {
+        labels,
+        datasets: [
+            {
+                label: 'Asset Proportion',
+                data,
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF',
+                    '#FF9F40',
+                    '#FF6384',
+                ],
+                hoverOffset: 4,
+            },
         ],
-        hoverOffset: 4,
-      },
-    ],
-  };
+    };
 
-  const options = {
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: function (tooltipItem: any) {
-            const total = data.reduce((acc, value) => acc + value, 0);
-            const currentValue = tooltipItem.raw;
-            const percentage = ((currentValue / total) * 100).toFixed(2);
-            return `${tooltipItem.label}: ${percentage}%`;
-          },
+    const options = {
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function (tooltipItem: any) {
+                        const total = data.reduce(
+                            (acc, value) => acc + value,
+                            0
+                        );
+                        const currentValue = tooltipItem.raw;
+                        const percentage = (
+                            (currentValue / total) *
+                            100
+                        ).toFixed(2);
+                        return `${tooltipItem.label}: ${percentage}%`;
+                    },
+                },
+            },
         },
-      },
-    },
-    cutout: cutout,
-  };
+        cutout: cutout,
+    };
 
-  return (
-    <div className="bg-white shadow p-4 rounded">
-      <h2 className="text-xl font-bold mb-4">Asset Proportion</h2>
-      <Doughnut data={chartData} options={options} />
-    </div>
-  );
+    return (
+        <div className="bg-white shadow p-4 rounded">
+            <h2 className="text-xl font-bold mb-4">Asset Proportion</h2>
+            <Doughnut data={chartData} options={options} />
+        </div>
+    );
 };
 
 export default AssetProportion;
