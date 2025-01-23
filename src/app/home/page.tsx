@@ -5,12 +5,10 @@ import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import NavBar from '@/components/NavBar';
 import StockData from '@/interfaces/stock.interface';
-import InvestorView from '@/interfaces/view.interface';
 import PortfolioData from '@/interfaces/portfolio.interface';
 import AssetsSection from '@/components/AssetsSection';
 import FilterSection from '@/components/FilterSection';
 import RadarData from '@/interfaces/radar.interface';
-import { filter, set } from 'lodash';
 
 const updateAssetsUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateAssets';
 
