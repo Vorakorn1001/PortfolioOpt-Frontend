@@ -1,41 +1,52 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, use } from 'react';
+import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import NavBar from '@/components/NavBar';
 import StockData from '@/interfaces/stock.interface';
 import InvestorView from '@/interfaces/view.interface';
 import PortfolioData from '@/interfaces/portfolio.interface';
 import AssetsSection from '@/components/AssetsSection';
-import { useSession } from 'next-auth/react';
+import FilterSection from '@/components/FilterSection';
+import RadarData from '@/interfaces/radar.interface';
+import { filter, set } from 'lodash';
 
 const updateAssetsUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateAssets';
 
 
 const Home: React.FC = () => {
+    const [sectors, setsectorField] = useState<string[]>([]);
+    const [marketCaps, setMarketCap] = useState<string[]>([]);
+    const [keyword, setKeyword] = useState<string>("");
+    const [radarData, setRadarData] = useState<RadarData>(initialRadarData);
     const [assets, setAssets] = useState<StockData[]>([]);
-    const [portfolioData, setPortfolioData] = useState<PortfolioData>({
-        activePortfolio: 'Portfolio',
-        portfolios: {
-            Portfolio: {
-                assets: [],
-                investorViews: [],
-            },
-        },
-    });
+    const [portfolioData, setPortfolioData] = useState<PortfolioData>(initialPortfolioData);
     const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
 
     const { data: session, status } = useSession();
 
     // Fetch data from the backend
-    const fetchData = useCallback(async (length: number = 0) => {
-        const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL + `/stock/${length}`;
+    const fetchData = useCallback(
+        async (
+            sectors: string[] = [],
+            marketCaps: string[] = [],
+            keyword: string = "",
+            radarData: RadarData,
+            skip: number = 0
+        ) => {
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL + `/stock/`;
+        const apiUrl = `${baseUrl}filter?skip=${skip}` + (keyword ? `&keyword=${keyword}` : '') 
         try {
             if (!apiUrl) throw new Error('API URL is not defined');
             setIsLoading(true);
-            const response = await axios.get(apiUrl);
-
+            const payload = {
+                sectors: sectors,
+                marketCaps: marketCaps,
+                radar: radarData.datasets[0].data,
+            }
+            const response = await axios.post(apiUrl, payload);
             if (response.data.length === 0) {
                 setHasMore(false);
             } else {
@@ -55,9 +66,14 @@ const Home: React.FC = () => {
         }
     }, []);
 
-    useEffect(() => {
-        fetchData();
 
+    useEffect(() => {
+        fetchData(
+            sectors,
+            marketCaps,
+            keyword,
+            radarData,
+        );
         const savedPortfolioData = JSON.parse(
             localStorage.getItem('portfolioData') || 'null'
         );
@@ -89,7 +105,13 @@ const Home: React.FC = () => {
             document.documentElement.offsetHeight - threshold;
 
         if (scrolledToBottom && hasMore && !isLoading) {
-            fetchData(assets.length);
+            fetchData(
+                sectors,
+                marketCaps,
+                keyword,
+                radarData,
+                assets.length
+            );
         }
     }, [assets.length, fetchData, hasMore, isLoading]);
 
@@ -101,9 +123,7 @@ const Home: React.FC = () => {
                 timer = setTimeout(handleScroll, 150);
             };
         };
-
         const debouncedHandleScroll = debounceScroll();
-
         window.addEventListener('scroll', debouncedHandleScroll);
         return () => {
             window.removeEventListener('scroll', debouncedHandleScroll);
@@ -111,7 +131,12 @@ const Home: React.FC = () => {
     }, [handleScroll]);
 
     const handlePortfolioChange = async (updatedPortfolio: StockData[]) => {
-        const activePortfolioName = portfolioData.activePortfolio;
+        const savedPortfolioData = JSON.parse(
+            localStorage.getItem('portfolioData') || 'null'
+        );
+        if (!savedPortfolioData) return;
+        const activePortfolioName = savedPortfolioData.activePortfolio;
+        if (!activePortfolioName) return;
 
         setPortfolioData((prevPortfolioData) => {
             const updatedPortfolios = {
@@ -146,14 +171,39 @@ const Home: React.FC = () => {
                 user: userData,
                 portfolio: updatedPortfolio,
             };
+            console.log('Payload:', payload);
             await axios.post(updateAssetsUrl, payload);
         }
     };
+
+    useEffect(() => {
+        setAssets([]);
+        setHasMore(true);
+        fetchData(sectors, marketCaps, keyword, radarData);
+    }, [sectors, marketCaps, keyword, radarData]);
+
+    const onApply = () => {
+        console.log("industrialField", sectors);
+        console.log("marketCap", marketCaps);
+        console.log("keyword", keyword);
+        console.log("radarData", radarData.datasets[0].data);
+      };
 
     return (
         <div className="bg-gray-100 min-h-screen w-full text-black">
             <NavBar />
             <div className="w-full max-w-screen-lg mx-auto bg-white min-h-screen p-6">
+                <FilterSection 
+                    industrialField={sectors}
+                    setIndustrialField={setsectorField}
+                    marketCap={marketCaps}
+                    setMarketCap={setMarketCap}
+                    keyword={keyword}
+                    setKeyword={setKeyword}
+                    radarData={radarData}
+                    setRadarData={setRadarData}
+                    onApply={onApply}
+                />
                 <h1 className="text-2xl font-bold">Stocks</h1>
                 <AssetsSection
                     portfolio={assets}
@@ -177,3 +227,33 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+
+
+const initialPortfolioData = {
+    activePortfolio: 'Portfolio',
+    portfolios: {
+        Portfolio: {
+            assets: [],
+            investorViews: [],
+        },
+    },
+}
+
+const initialRadarData = {
+    labels: [
+        'High Return',
+        'Low Volatile',
+        'Market Cap.',
+        'Beta',
+        'Momentum',
+    ],
+    datasets: [
+        {
+            label: 'Portfolio Performance',
+            data: [3, 3, 3, 3, 3], // Adjusted sample data for 5 steps
+            backgroundColor: 'rgba(75,192,192,0.2)',
+            borderColor: 'rgba(75,192,192,1)',
+            borderWidth: 2,
+        },
+    ],
+  }

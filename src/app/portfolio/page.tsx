@@ -4,7 +4,6 @@ import axios from 'axios';
 import React, { useRef, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
-
 import StockData from '@/interfaces/stock.interface';
 import InvestorView from '@/interfaces/view.interface';
 import Limit from '@/interfaces/limit.interface';
@@ -15,6 +14,12 @@ import InvestorsViewSection from '@/components/InvestorsViewSection';
 import ConstraintSection from '@/components/ConstraintSection';
 import AddViewPopup from '@/components/AddViewPopup';
 import NavBar from '@/components/NavBar';
+
+interface portfolioAndInvestorViews {
+    assets: StockData[];
+    investorViews: InvestorView[];
+}
+
 
 
 const Portfolio: React.FC = () => {
@@ -28,25 +33,20 @@ const Portfolio: React.FC = () => {
     const [validPortfolio, setValidPortfolio] = useState(true);
     const [stocksOrder, setStocksOrder] = useState<string[]>([]);
     const [correlationMatrix, setCorrelationMatrix] = useState<number[][]>([]);
-    const [portfolio, setPortfolio] = useState<StockData[]>([]);
     const [showPortfolio, setShowPortfolio] = useState<StockData[]>([]);
-    const [investorViews, setInvestorViews] = useState<InvestorView[]>([]);
+    const [portfolioAndInvestorViews, setPortfolioAndInvestorViews] = useState<portfolioAndInvestorViews>(initialPortfolioAndInvestorViews);
     const [isInitialFetchDone, setIsInitialFetchDone] = useState(false);
-    const [limits, setLimits] = useState<Limit>(() => ({
-        minReturn: 0,
-        maxReturn: 100,
-        minVolatility: 0,
-        maxVolatility: 100,
-    }));
+    const [limits, setLimits] = useState<Limit>(initialLimit);
+    const [portfolios, setPortfolios] = useState<string[]>([]);
+    const [selectedPortfolio, setSelectedPortfolio] = useState<string>('');
 
     const PortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/portfolio/';
-    const ViewUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/portfolio/view/';
     const uploadIBKRUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/ibkr/';
-    const updateAssetsUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateAssets';
     const updatePortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updatePortfolio';
+    const deletePortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/deletePortfolio';
+    const updateActivePortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateActivePortfolio';
 
     const { data: session, status } = useSession();
-
 
     useEffect(() => {
         const savedPortfolioData = JSON.parse(
@@ -54,100 +54,121 @@ const Portfolio: React.FC = () => {
         );
 
         if (!savedPortfolioData) return;
-
         const activePortfolioName = savedPortfolioData.activePortfolio;
+        if (!activePortfolioName) return;
+
         const activePortfolio =
             savedPortfolioData.portfolios[activePortfolioName]?.assets || [];
         const savedInvestorViews =
-            savedPortfolioData.portfolios[activePortfolioName]?.investorView ||
+            savedPortfolioData.portfolios[activePortfolioName]?.investorViews ||
             [];
 
-        if (activePortfolio.length < 2) {
-            setValidPortfolio(false);
-            return;
+        var portAndView = {
+            assets: activePortfolio,
+            investorViews: savedInvestorViews,
+        };
+
+        if (hasConflictingViews(portAndView)) {
+            portAndView.investorViews = getNonConflictingViews(portAndView);
+            updatePortfolio(portAndView, activePortfolioName);
         }
 
-        setInvestorViews(savedInvestorViews);
-        setPortfolio(activePortfolio);
+        setSelectedPortfolio(activePortfolioName);
+        setPortfolios(Object.keys(savedPortfolioData.portfolios));
+        setPortfolioAndInvestorViews(portAndView);
         setIsInitialFetchDone(true);
+        
+        if (activePortfolio.length < 2) {
+            setValidPortfolio(false);
+        }
     }, []);
 
-    // Save the active portfolio in localStorage and update the portfolio data
+    const getNonConflictingViews = (portfolio: portfolioAndInvestorViews) => {
+        const views = portfolio.investorViews;
+        const assets = portfolio.assets;
+        const symbols = assets.map((stock) => stock.symbol);
+        return views.filter((view) => 
+            symbols.includes(view.asset1) && 
+            (!view.asset2 || symbols.includes(view.asset2))
+        );
+    }
+
+    const hasConflictingViews = (portfolio: portfolioAndInvestorViews) => {
+        const views = portfolio.investorViews;
+        const assets = portfolio.assets;
+        const symbols = assets.map((stock) => stock.symbol);
+        return views.some((view) => 
+            !symbols.includes(view.asset1) || 
+            (view.asset2 && !symbols.includes(view.asset2))
+        );
+    }
+
+    const updatePortfolio = async (portfolio: portfolioAndInvestorViews, activePortfolio: string) => {
+        const savedPortfolioData = JSON.parse(
+            localStorage.getItem('portfolioData') || 'null'
+        );
+        if (!savedPortfolioData) return;
+        // const activePortfolioName = savedPortfolioData.activePortfolio;
+        // if (!activePortfolioName) return;
+
+        portfolio.investorViews = getNonConflictingViews(portfolio);
+        
+        // Update the active portfolio in localStorage
+        savedPortfolioData.portfolios[activePortfolio] = portfolio;
+        localStorage.setItem(
+            'portfolioData',
+            JSON.stringify(savedPortfolioData)
+        );
+
+        // send update portfolioData to the backend
+        if (status === 'authenticated') {
+            // Send UserData, ActivePortfolio, and PortfolioData of that Portfolio
+            const userData = {
+                name: session.user?.name,
+                email: session.user?.email,
+                image: session.user?.image,
+                activePortfolio: activePortfolio,
+            };
+            const payload = {
+                user: userData,
+                portfolio: portfolio,
+            };
+            // console.log("Update Payload", payload);
+            await axios.post(updatePortfolioUrl, payload);
+        }
+    }
+
+    // portfolioAndInvestorViews listener
+    // Save the active portfolio's investorViews in localStorage and update the portfolio data
     useEffect(() => {
         if (!isInitialFetchDone) return;
+        // console.log("PortfolioAndInvestorViews", portfolioAndInvestorViews);
         const saveActivePortfolio = async () => {
-            const savedPortfolioData = JSON.parse(
-                localStorage.getItem('portfolioData') || 'null'
-            );
+            
+            updatePortfolio(portfolioAndInvestorViews, selectedPortfolio);
 
-            if (!savedPortfolioData) return;
-
-            const activePortfolioName = savedPortfolioData.activePortfolio;
-            if (!activePortfolioName) return;
-
-            const savedPortfolio =
-                savedPortfolioData.portfolios[activePortfolioName];
-            if (!savedPortfolio) return;
-
-            const portfolioSymbols = savedPortfolio.assets.map(
-                (asset: { symbol: string }) => asset.symbol
-            );
-
-            const validInvestorViews = savedPortfolio.investorViews.filter(
-                (investorView: InvestorView) => {
-                    const assetsToCheck = [
-                        investorView.asset1,
-                        investorView.asset2,
-                    ].filter(Boolean);
-                    // Check if all assets in the investor view are in the portfolio
-                    return assetsToCheck.every((assetSymbol) =>
-                        portfolioSymbols.includes(assetSymbol)
-                    );
-                }
-            );
-
-            // Save the updated portfolio assets in localStorage
-            savedPortfolioData.portfolios[activePortfolioName].assets =
-                portfolio;
-            localStorage.setItem(
-                'portfolioData',
-                JSON.stringify(savedPortfolioData)
-            );
-
-            // if there are a change in the investor views the portfolio will be updated by investor views listener
-            if (validInvestorViews.length !== savedPortfolio.investorViews.length) {
-                setInvestorViews(validInvestorViews);
+            if (portfolioAndInvestorViews.assets.length < 2) {
+                // console.log("Portfolio", portfolioAndInvestorViews.assets);
+                setShowPortfolio(portfolioAndInvestorViews.assets);
+                setValidPortfolio(false);
                 return;
-            }
-
-            // Send updated portfolio data to the backend
-            if (status === 'authenticated') {
-                // Send UserData, ActivePortfolio, and PortfolioData of that Portfolio
-                const userData = {
-                    name: session.user?.name,
-                    email: session.user?.email,
-                    image: session.user?.image,
-                    activePortfolio: activePortfolioName,
-                };
-                const payload = {
-                    user: userData,
-                    portfolio: portfolio,
-                };
-                await axios.post(updateAssetsUrl, payload);
+            } else {
+                setValidPortfolio(true);
             }
 
             try {
                 const response = await axios.post(PortfolioUrl, {
-                    stocks: portfolio.map((stock: StockData) => stock.symbol),
-                    investorViews: investorViews,
+                    stocks: portfolioAndInvestorViews.assets.map((stock) => stock.symbol),
+                    investorViews: portfolioAndInvestorViews.investorViews,
                 });
-
+                
+                const stocksOrder = response.data.stocks;
+                const correlationMatrix = response.data.correlationMatrix;
                 const priorReturns = response.data.priorReturns;
                 const posteriorReturns = response.data.posteriorReturns;
                 const responseLimits = response.data.limits;
-
-                setCorrelationMatrix(response.data.correlationMatrix);
-                setStocksOrder(response.data.stocks);
+                setStocksOrder(stocksOrder);
+                setCorrelationMatrix(correlationMatrix);
                 setLimits(responseLimits);
                 setSliderValue(
                     selectedMetric === 'return'
@@ -155,112 +176,60 @@ const Portfolio: React.FC = () => {
                         : responseLimits.minVolatility
                 );
 
-                const enrichedPortfolio: StockData[] = response.data.stocks.map(
-                    (symbol: string, index: number) => ({
-                        ...portfolio.find(
-                            (stock: StockData) => stock.symbol === symbol
-                        ),
-                        priorReturn: priorReturns[index],
-                        posteriorReturn: posteriorReturns[index],
-                    })
-                );
-
-                setShowPortfolio(enrichedPortfolio);
-                setIsInitialFetchDone(true);
-            } catch (error) {
-                console.error('Error fetching updated portfolio data:', error);
-            }
-        };
-        saveActivePortfolio();
-    }, [portfolio]);
-
-    // Save the active portfolio's investorViews in localStorage and update the portfolio data
-    useEffect(() => {
-        if (!isInitialFetchDone) return;
-        const saveActivePortfolio = async () => {
-            const savedPortfolioData = JSON.parse(
-                localStorage.getItem('portfolioData') || 'null'
-            );
-            if (!savedPortfolioData) return;
-
-            const activePortfolioName = savedPortfolioData.activePortfolio;
-            if (!activePortfolioName) return;
-
-            // Update the active portfolio's investorViews in localStorage
-            savedPortfolioData.portfolios[activePortfolioName].investorViews =
-                investorViews;
-            localStorage.setItem(
-                'portfolioData',
-                JSON.stringify(savedPortfolioData)
-            );
-            
-            // send update portfolioData to the backend
-            if (status === 'authenticated') {
-                console.log('Sending updated portfolio data to the backend...');
-                // Send UserData, ActivePortfolio, and PortfolioData of that Portfolio
-                const userData = {
-                    name: session.user?.name,
-                    email: session.user?.email,
-                    image: session.user?.image,
-                    activePortfolio: activePortfolioName,
-                };
-                const payload = {
-                    user: userData,
-                    portfolio: savedPortfolioData.portfolios[activePortfolioName],
-                };
-                await axios.post(updatePortfolioUrl, payload);
-
-            }
-
-            try {
-                const response = await axios.post(ViewUrl, {
-                    stocks: portfolio.map((stock) => stock.symbol),
-                    investorViews: investorViews, // Use the updated `investorViews`
-                });
-
-                const priorReturns = response.data.priorReturns;
-                const posteriorReturns = response.data.posteriorReturns;
-                const responseLimits = response.data.limits;
-                setLimits(responseLimits);
-                setSliderValue(
-                    selectedMetric === 'return'
-                        ? responseLimits.minReturn
-                        : responseLimits.minVolatility
-                );
-
-                const enrichedPortfolio: StockData[] = portfolio.map(
-                    (stock: StockData, index: number) => ({
+                const enrichedPortfolio: StockData[] = stocksOrder.map((symbol: string, index: number) => {
+                    const stock = portfolioAndInvestorViews.assets.find((s) => s.symbol === symbol);
+                    return {
                         ...stock,
                         priorReturn: priorReturns[index],
                         posteriorReturn: posteriorReturns[index],
-                    })
-                );
+                    };
+                });
                 setShowPortfolio(enrichedPortfolio);
             } catch (error) {
                 console.error('Error fetching updated portfolio data:', error);
             }
         };
-
         saveActivePortfolio();
-    }, [investorViews]);
+    }, [portfolioAndInvestorViews]);
+
+    // selectedPortfolio listener
+    useEffect(() => {
+        if (!isInitialFetchDone) return;
+        // console.log("SelectedPortfolio", selectedPortfolio);
+        const savedPortfolioData = JSON.parse(
+            localStorage.getItem('portfolioData') || 'null'
+        );
+        if (!savedPortfolioData) return;
+        // console.log("Save", savedPortfolioData.portfolios[selectedPortfolio]);
+        setPortfolioAndInvestorViews(savedPortfolioData.portfolios[selectedPortfolio]);
+    }, [selectedPortfolio]);
 
     const handlePortfolioChange = async (updatedPortfolio: StockData[]) => {
-        setPortfolio(updatedPortfolio);
+        const updatedPortfolioAndInvestorViews = {
+            assets: updatedPortfolio,
+            investorViews: portfolioAndInvestorViews.investorViews,
+        };
+        setPortfolioAndInvestorViews(updatedPortfolioAndInvestorViews);
         if (updatedPortfolio.length < 2) {
             setValidPortfolio(false);
-            setCorrelationMatrix([]);
             return;
         }
     };
 
     const handleAddView = (newView: InvestorView) => {
-        const updatedViews = [...investorViews, newView];
-        setInvestorViews(updatedViews);
+        const updatedViews = [...portfolioAndInvestorViews.investorViews, newView];
+        setPortfolioAndInvestorViews({
+            assets: portfolioAndInvestorViews.assets,
+            investorViews: updatedViews,
+        });
     };
 
     const handleRemoveView = (index: number) => {
-        const updatedViews = investorViews.filter((_, i) => i !== index);
-        setInvestorViews(updatedViews);
+        const updatedViews = portfolioAndInvestorViews.investorViews.filter((_, i) => i !== index);
+        setPortfolioAndInvestorViews({
+            assets: portfolioAndInvestorViews.assets,
+            investorViews: updatedViews,
+        });
     };
 
     const handleOptimize = async () => {
@@ -274,7 +243,7 @@ const Portfolio: React.FC = () => {
 
     const handleButtonClick = () => {
         if (fileInputRef.current) {
-            fileInputRef.current.click(); // Trigger file input click
+            fileInputRef.current.click();
         }
     };
 
@@ -316,6 +285,85 @@ const Portfolio: React.FC = () => {
         }
     };
 
+    const handleCreatePortfolio = async () => {
+        const newPortfolioName = prompt('Enter the name of the new portfolio:');
+        if (newPortfolioName) {
+            const savedPortfolioData = JSON.parse(
+                localStorage.getItem('portfolioData') || '{}'
+            );
+            savedPortfolioData.portfolios = savedPortfolioData.portfolios || {};
+            savedPortfolioData.portfolios[newPortfolioName] = {
+                assets: [],
+                investorViews: [],
+            };
+            savedPortfolioData.activePortfolio = newPortfolioName;
+            localStorage.setItem(
+                'portfolioData',
+                JSON.stringify(savedPortfolioData)
+            );
+            setPortfolios(Object.keys(savedPortfolioData.portfolios));
+            setSelectedPortfolio(newPortfolioName);
+            setPortfolioAndInvestorViews(savedPortfolioData.portfolios[newPortfolioName]);
+        }
+    };
+
+    const handleDeletePortfolio = async () => {
+        if (portfolios.length <= 1) {
+            alert('Cannot delete the only portfolio.');
+            return;
+        }
+        const savedPortfolioData = JSON.parse(
+            localStorage.getItem('portfolioData') || '{}'
+        );
+
+        delete savedPortfolioData.portfolios[selectedPortfolio];
+        const newActivePortfolio = Object.keys(savedPortfolioData.portfolios)[0];
+
+        if (status === 'authenticated') {
+            await axios.post(deletePortfolioUrl + "?portfolioName=" + selectedPortfolio, {
+                name: session.user?.name,
+                email: session.user?.email,
+                image: session.user?.image,
+                activePortfolio: newActivePortfolio,
+            });
+        }
+        savedPortfolioData.activePortfolio = newActivePortfolio;
+        localStorage.setItem(
+            'portfolioData',
+            JSON.stringify(savedPortfolioData)
+        );
+
+        setPortfolios(Object.keys(savedPortfolioData.portfolios));
+        setSelectedPortfolio(newActivePortfolio);
+        setPortfolioAndInvestorViews(savedPortfolioData.portfolios[newActivePortfolio]);
+    };
+
+    const handlePortfolioSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selected = e.target.value;
+        const savedPortfolioData = JSON.parse(
+            localStorage.getItem('portfolioData') || '{}'
+        );
+        savedPortfolioData.activePortfolio = selected;
+        localStorage.setItem(
+            'portfolioData',
+            JSON.stringify(savedPortfolioData)
+        );
+        if (status === 'authenticated') {
+            const userData = {
+                name: session.user?.name,
+                email: session.user?.email,
+                image: session.user?.image,
+                activePortfolio: selected,
+            };
+            await axios.post(deletePortfolioUrl, {
+                user: userData,
+                portfolio: savedPortfolioData.portfolios[selectedPortfolio],
+            });
+        }
+        setSelectedPortfolio(selected);
+        setPortfolioAndInvestorViews(savedPortfolioData.portfolios[selected]);
+    };
+
     return (
         <div className="bg-gray-100 min-h-screen w-full text-black">
             <NavBar />
@@ -348,6 +396,33 @@ const Portfolio: React.FC = () => {
                     </button>
                 </div>
 
+                <div className="flex justify-between items-center mt-4">
+                    <select
+                        value={selectedPortfolio}
+                        onChange={handlePortfolioSelect}
+                        className="p-2 border rounded"
+                    >
+                        {portfolios.map((portfolioName) => (
+                            <option key={portfolioName} value={portfolioName}>
+                                {portfolioName}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={handleCreatePortfolio}
+                        className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+                    >
+                        Create Portfolio
+                    </button>
+                    <button
+                        onClick={handleDeletePortfolio}
+                        className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+                        disabled={portfolios.length <= 1}
+                    >
+                        Delete Portfolio
+                    </button>
+                </div>
+
                 <div>
                     <AssetsSection
                         portfolio={showPortfolio}
@@ -361,7 +436,7 @@ const Portfolio: React.FC = () => {
                                 stocksOrder={stocksOrder}
                             />
                             <InvestorsViewSection
-                                investorViews={investorViews}
+                                investorViews={portfolioAndInvestorViews.investorViews}
                                 setShowPopup={setShowPopup}
                                 onRemoveView={handleRemoveView}
                             />
@@ -389,7 +464,7 @@ const Portfolio: React.FC = () => {
                         isVisible={showPopup}
                         onClose={() => setShowPopup(false)}
                         onSave={handleAddView}
-                        portfolio={portfolio.map((stock) => ({
+                        portfolio={portfolioAndInvestorViews.assets.map((stock) => ({
                             symbol: stock.symbol,
                         }))}
                     />
@@ -400,3 +475,15 @@ const Portfolio: React.FC = () => {
 };
 
 export default Portfolio;
+
+const initialLimit: Limit = {
+    minReturn: 0,
+    maxReturn: 100,
+    minVolatility: 0,
+    maxVolatility: 100,
+}
+
+const initialPortfolioAndInvestorViews: portfolioAndInvestorViews = {
+    assets: [],
+    investorViews: [],
+};

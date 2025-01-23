@@ -11,59 +11,6 @@ import Diversification from '@/components/Diversification';
 import MeanVarianceAnalysis from '@/components/MeanVarianceAnalysis';
 import NavBar from '@/components/NavBar';
 import Metric from '@/interfaces/metric.interface';
-import { time } from 'console';
-
-const data = {
-    nodes: [{ name: 'Portfolio 100%' }, { name: 'Place Holder-1' }],
-    links: [{ source: 0, target: 1, value: 1 }],
-};
-
-const portfolioVsMarket = {
-    days: [
-        '2023-01-01',
-        '2023-02-01',
-        '2023-03-01',
-        '2023-04-01',
-        '2023-05-01',
-        '2023-06-01',
-        '2023-07-01',
-    ],
-    portfolio: [0, 10, 5, 15, 20, 18, 25],
-    market: [0, 5, 10, 20, 25, 30, 50],
-};
-
-const sampleData = [
-    {
-        weight: [0.2, 0.3, 0.5],
-        return: 0.08,
-        volatility: 0.12,
-        sharpeRatio: 1.5,
-    },
-    {
-        weight: [0.4, 0.1, 0.5],
-        return: 0.1,
-        volatility: 0.15,
-        sharpeRatio: 1.2,
-    },
-    {
-        weight: [0.3, 0.3, 0.4],
-        return: 0.07,
-        volatility: 0.1,
-        sharpeRatio: 1.0,
-    },
-    {
-        weight: [0.1, 0.5, 0.4],
-        return: 0.12,
-        volatility: 0.18,
-        sharpeRatio: 0.8,
-    },
-    {
-        weight: [0.3, 0.4, 0.3],
-        return: 0.09,
-        volatility: 0.14,
-        sharpeRatio: 1.3,
-    },
-];
 
 const Optimize: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -94,7 +41,7 @@ const Optimize: React.FC = () => {
         const savedPortfolio =
             savedPortfolioData.portfolios[activePortfolioName]?.assets || [];
         const savedInvestorViews =
-            savedPortfolioData.portfolios[activePortfolioName]?.investorView ||
+            savedPortfolioData.portfolios[activePortfolioName]?.investorViews ||
             [];
 
         const savedConstraint = JSON.parse(
@@ -104,7 +51,9 @@ const Optimize: React.FC = () => {
         const fetchOptimizePage = async () => {
             if (!optimizeUrl) throw new Error('API URL is not defined');
             try {
-                const response = await axios.post(optimizeUrl + '?timeframe=' + selectedTimeFrame, {
+                const optimizeUrlwithTimeFrame = optimizeUrl + '?timeframe=' + selectedTimeFrame;
+                console.log(optimizeUrlwithTimeFrame);
+                const response = await axios.post(optimizeUrlwithTimeFrame, {
                     stocks: savedPortfolio.map(
                         (stock: StockData) => stock.symbol
                     ),
@@ -200,3 +149,56 @@ const Optimize: React.FC = () => {
 };
 
 export default Optimize;
+
+
+const data = {
+    nodes: [{ name: 'Portfolio 100%' }, { name: 'Place Holder-1' }],
+    links: [{ source: 0, target: 1, value: 1 }],
+};
+
+const portfolioVsMarket = {
+    days: [
+        '2023-01-01',
+        '2023-02-01',
+        '2023-03-01',
+        '2023-04-01',
+        '2023-05-01',
+        '2023-06-01',
+        '2023-07-01',
+    ],
+    portfolio: [0, 10, 5, 15, 20, 18, 25],
+    market: [0, 5, 10, 20, 25, 30, 50],
+};
+
+const sampleData = [
+    {
+        weight: [0.2, 0.3, 0.5],
+        return: 0.08,
+        volatility: 0.12,
+        sharpeRatio: 1.5,
+    },
+    {
+        weight: [0.4, 0.1, 0.5],
+        return: 0.1,
+        volatility: 0.15,
+        sharpeRatio: 1.2,
+    },
+    {
+        weight: [0.3, 0.3, 0.4],
+        return: 0.07,
+        volatility: 0.1,
+        sharpeRatio: 1.0,
+    },
+    {
+        weight: [0.1, 0.5, 0.4],
+        return: 0.12,
+        volatility: 0.18,
+        sharpeRatio: 0.8,
+    },
+    {
+        weight: [0.3, 0.4, 0.3],
+        return: 0.09,
+        volatility: 0.14,
+        sharpeRatio: 1.3,
+    },
+];

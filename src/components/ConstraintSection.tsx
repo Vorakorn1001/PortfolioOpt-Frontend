@@ -1,5 +1,5 @@
 import React from 'react';
-import { Limit } from '@/interfaces/limit.interface';
+import Limit from '@/interfaces/limit.interface';
 
 interface ConstraintSectionProps {
     selectedMetric: string;

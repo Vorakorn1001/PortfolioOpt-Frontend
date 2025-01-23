@@ -52,7 +52,7 @@ const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
         };
     };
 
-    const samplingLimit = 100;
+    const samplingLimit = 100 > days.length ? days.length : 100;
 
     const { sampledData: sampledPortfolio, sampledLabels: sampledDays } = sampleData(portfolio, days, samplingLimit);
     const { sampledData: sampledMarket } = sampleData(market, days, samplingLimit);
