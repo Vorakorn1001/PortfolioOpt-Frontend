@@ -31,7 +31,7 @@ const sectors = [
     'Utilities',
     'Consumer Staples',
     'Miscellaneous',
-    'Telecommunications'
+    'Telecommunications',
 ];
 
 const marketCapOptions = [
@@ -72,7 +72,6 @@ interface FilterSectionProps {
             }[];
         }>
     >;
-    onApply: () => void;
 }
 
 const FilterSection: React.FC<FilterSectionProps> = ({
@@ -84,7 +83,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     setKeyword,
     radarData,
     setRadarData,
-    onApply,
 }) => {
     // useEffect(() => {
     //     console.log('Radar data updated:', radarData.datasets[0].data);
@@ -151,6 +149,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         setKeyword(event.target.value);
     };
 
+    // Handle dragging the radar chart points
     const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
         const chart = chartRef.current;
         if (!chart) return;
@@ -166,6 +165,13 @@ const FilterSection: React.FC<FilterSectionProps> = ({
             setDraggedPointIndex(points[0].index);
         }
     };
+
+    const handleMouseUp = () => {
+        setDragging(false);
+        setDraggedPointIndex(null);
+    };
+
+    const maxPoints = 5;
 
     const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
         if (!dragging || draggedPointIndex === null) return;
@@ -183,14 +189,17 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         const maxDistance = Math.min(centerX - left, centerY - top);
 
         // Adjust sensitivity by requiring a minimum threshold distance for a step change
-        const sensitivity = 1; // Higher value makes it less sensitive (e.g., 0.7 = 70% of a step)
+        const sensitivity = 0.1;
         const scaledValue = (distanceFromCenter / maxDistance) * 5; // Adjusted for 5 steps
         const stepThreshold = 1 * sensitivity; // Distance required for each step
         const newValue =
             Math.round(scaledValue / stepThreshold) * stepThreshold;
 
         // Clamp the value to ensure it stays within bounds
-        const clampedValue = Math.max(0, Math.min(5, Math.round(newValue))); // Adjusted for 5 steps
+        const clampedValue = Math.max(
+            1,
+            Math.min(maxPoints, Math.round(newValue))
+        ); // Adjusted for 5 steps
 
         // Update the data for the dragged point
         const newData = radarData.datasets[0].data.map((value, index) => {
@@ -219,9 +228,36 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         });
     };
 
-    const handleMouseUp = () => {
-        setDragging(false);
-        setDraggedPointIndex(null);
+    const handleTouchStart = (e: React.TouchEvent) => {
+        const chart = chartRef.current;
+        if (!chart) return;
+
+        const touchPosition = e.touches[0];
+        const points = chart.getElementsAtEventForMode(
+            touchPosition,
+            'nearest',
+            { intersect: true },
+            false
+        );
+
+        if (points.length) {
+            const pointIndex = points[0].index;
+            const newData = [...radarData.datasets[0].data];
+            newData[pointIndex] = Math.max(
+                (newData[pointIndex] + 1) % maxPoints,
+                1
+            );
+
+            setRadarData({
+                ...radarData,
+                datasets: [
+                    {
+                        ...radarData.datasets[0],
+                        data: newData,
+                    },
+                ],
+            });
+        }
     };
 
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -338,7 +374,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                             display: 'block',
                             fontWeight: 'bold',
                             marginLeft: '25px',
-                            marginBottom: '10px', // Added padding
+                            marginBottom: '10px',
                         }}
                     >
                         Market Cap. Field
@@ -353,7 +389,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                             borderRadius: '4px',
                             position: 'relative',
                             marginLeft: '25px',
-                            marginBottom: '20px', // Added padding
+                            marginBottom: '20px',
                         }}
                     >
                         <button
@@ -399,7 +435,9 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                                         <input
                                             type="checkbox"
                                             value={cap.label}
-                                            checked={marketCap.includes(cap.label)}
+                                            checked={marketCap.includes(
+                                                cap.label
+                                            )}
                                             onChange={handleMarketCapChange}
                                             style={{ marginRight: '10px' }}
                                         />
@@ -408,9 +446,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                                 ))}
                             </div>
                         )}
-
-
-
                     </div>
                 </div>
                 <div>
@@ -433,6 +468,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                         placeholder="Search..."
                         style={{
                             width: '80%',
+                            height: '50px',
                             padding: '8px',
                             marginTop: '5px',
                             border: '1px solid #ccc',
@@ -442,6 +478,32 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                         }}
                     />
                 </div>
+                <button
+                    onClick={() => {
+                        if (
+                            industrialField.length > 0 ||
+                            marketCap.length > 0 ||
+                            keyword !== ''
+                        ) {
+                            setIndustrialField([]);
+                            setMarketCap([]);
+                            setKeyword('');
+                        }
+                    }}
+                    className={
+                        'bg-black text-white border-white hover:bg-gray-800 rounded-full'
+                    }
+                    style={{
+                        width: '30%',
+                        padding: '10px',
+                        marginTop: '10px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        marginLeft: '25px',
+                    }}
+                >
+                    Reset Filters
+                </button>
             </div>
 
             {/* Radar Chart Section */}
@@ -463,10 +525,18 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                     <Radar
                         ref={chartRef}
                         data={radarData}
-                        options={radarOptions}
+                        options={{
+                            ...radarOptions,
+                            elements: {
+                                point: {
+                                    radius: 15,
+                                },
+                            },
+                        }}
                         onMouseDown={handleMouseDown}
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
+                        onTouchStart={handleTouchStart}
                     />
                 </div>
             </div>

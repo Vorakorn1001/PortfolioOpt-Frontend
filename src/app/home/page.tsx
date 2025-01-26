@@ -173,13 +173,6 @@ const Home: React.FC = () => {
         fetchData(sectors, marketCaps, keyword, radarData);
     }, [sectors, marketCaps, keyword, radarData]);
 
-    const onApply = () => {
-        console.log('industrialField', sectors);
-        console.log('marketCap', marketCaps);
-        console.log('keyword', keyword);
-        console.log('radarData', radarData.datasets[0].data);
-    };
-
     return (
         <div className="bg-gray-100 min-h-screen w-full text-black">
             <NavBar />
@@ -193,7 +186,6 @@ const Home: React.FC = () => {
                     setKeyword={setKeyword}
                     radarData={radarData}
                     setRadarData={setRadarData}
-                    onApply={onApply}
                 />
                 <div className="my-2"></div>
                 <AssetsSection
@@ -235,8 +227,8 @@ const initialRadarData = {
         {
             label: 'Portfolio Performance',
             data: [3, 3, 3, 3, 3], // Adjusted sample data for 5 steps
-            backgroundColor: 'rgba(75,192,192,0.2)',
-            borderColor: 'rgba(75,192,192,1)',
+            backgroundColor: 'rgba(211,211,211,0.2)', // Bright grey background color
+            borderColor: 'rgba(211,211,211,1)', // Bright grey border color
             borderWidth: 2,
         },
     ],

@@ -8,17 +8,16 @@ interface AssetsSectionProps {
     portfolio: StockData[];
     excludeFields?: string[];
     handlePortfolioChange: (updatedPortfolio: StockData[]) => void;
-    showHeader?: boolean;
 }
 
 const AssetsSection: React.FC<AssetsSectionProps> = ({
     portfolio,
     excludeFields = [],
     handlePortfolioChange,
-    showHeader = true,
 }) => {
     const fields = [
         'symbol',
+        'name',
         'price',
         'annualReturn',
         'annual5YrsReturn',

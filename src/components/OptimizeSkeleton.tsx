@@ -10,15 +10,23 @@ const OptimizeSkeleton: React.FC = () => {
                 {/* Grid Section */}
                 <div className="grid grid-cols-2 gap-4">
                     {/* Asset Proportion Skeleton */}
-                    <div className="bg-gray-200 shadow p-4 rounded animate-pulse">
-                        <div className="h-6 mb-4 bg-gray-300 rounded"></div>
-                        <div
-                            className={`flex justify-center items-center ${skeletonCircle}`}
-                        />
+                    <div className="p-4 bg-gray-200 rounded-2xl shadow animate-pulse">
+                        <div className="h-6 w-1/3 bg-gray-300 rounded mb-4"></div>
+                        <div className="flex justify-center items-center">
+                            <div className="h-48 w-48 bg-gray-300 rounded-full"></div>
+                        </div>
                     </div>
 
                     {/* Diversification Skeleton */}
                     <div className="bg-gray-200 shadow p-4 rounded animate-pulse">
+                        <div className="h-6 mb-4 bg-gray-300 rounded"></div>
+                        <div className="h-64 bg-gray-300 rounded"></div>
+                    </div>
+                </div>
+
+                {/* Mean-Variance Analysis Skeleton */}
+                <div className="py-4">
+                    <div className="bg-gray-200 shadow p-4 rounded">
                         <div className="h-6 mb-4 bg-gray-300 rounded"></div>
                         <div className="h-64 bg-gray-300 rounded"></div>
                     </div>
@@ -47,14 +55,6 @@ const OptimizeSkeleton: React.FC = () => {
                 </div>
 
                 {/* Historical Performance Skeleton */}
-                <div className="py-4">
-                    <div className="bg-gray-200 shadow p-4 rounded">
-                        <div className="h-6 mb-4 bg-gray-300 rounded"></div>
-                        <div className="h-64 bg-gray-300 rounded"></div>
-                    </div>
-                </div>
-
-                {/* Mean-Variance Analysis Skeleton */}
                 <div className="py-4">
                     <div className="bg-gray-200 shadow p-4 rounded">
                         <div className="h-6 mb-4 bg-gray-300 rounded"></div>

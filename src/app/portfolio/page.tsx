@@ -434,7 +434,6 @@ const Portfolio: React.FC = () => {
                         portfolio={showPortfolio}
                         excludeFields={['price', 'sector', 'industry']}
                         handlePortfolioChange={handlePortfolioChange}
-                        showHeader={true}
                     />
 
                     {validPortfolio ? (
