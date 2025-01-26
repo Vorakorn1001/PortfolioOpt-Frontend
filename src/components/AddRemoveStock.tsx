@@ -82,14 +82,14 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
 
     return (
         <button
-            className={`w-48 h-16 px-4 py-2 rounded text-white transition-colors duration-300 ${
+            className={`w-20 h-8 p-1 rounded-full transition-colors duration-300 border ${
                 isInPortfolio
-                    ? 'bg-red-500 hover:bg-red-400'
-                    : 'bg-blue-500 hover:bg-blue-400'
+                    ? 'bg-white text-black border-black hover:bg-gray-200'
+                    : 'bg-black text-white border-white hover:bg-gray-800'
             }`}
             onClick={isInPortfolio ? handleRemove : handleAdd}
         >
-            {isInPortfolio ? 'Remove from Portfolio' : 'Add to Portfolio'}
+            {isInPortfolio ? 'Remove' : 'Add'}
         </button>
     );
 };

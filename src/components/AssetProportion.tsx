@@ -72,9 +72,11 @@ const AssetProportion: React.FC<AssetProportionProps> = ({
     };
 
     return (
-        <div className="bg-white shadow p-4 rounded">
-            <h2 className="text-xl font-bold mb-4">Asset Proportion</h2>
-            <Doughnut data={chartData} options={options} />
+        <div className="p-2 bg-white rounded-2xl" style={{ height: '550px' }}>
+            <div className="bg-white rounded-2xl overflow-hidden p-4">
+                <h1 className="text-xl font-bold mb-4">Asset Proportion</h1>
+                <Doughnut data={chartData} options={options} />
+            </div>
         </div>
     );
 };

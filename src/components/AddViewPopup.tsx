@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { investorView } from '@/interfaces/view.interface';
+import investorView from '@/interfaces/view.interface';
 
 interface AddViewPopupProps {
     isVisible: boolean;

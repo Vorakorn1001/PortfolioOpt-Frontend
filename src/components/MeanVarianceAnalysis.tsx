@@ -48,47 +48,61 @@ const MeanVarianceAnalysis: React.FC<MeanVarianceAnalysisProps> = ({
         );
 
         if (elements.length > 0) {
-            const index = elements[0].index; // Get the clicked data point index
-            const selectedData = data[index]; // Get the corresponding data
-            console.log(selectedData);
-            setWeight(selectedData.weight); // Set the selected weights
-            // setSelectedWeights(selectedData.weight); // Set the selected weights
+            const index = elements[0].index;
+            const selectedData = data[index];
+            setWeight(selectedData.weight);
         }
     };
 
     return (
-        <div className="bg-white shadow p-4 rounded">
-            <h2 className="text-xl font-bold">Mean-Variance Analysis</h2>
-            <Scatter
-                data={chartData}
-                options={{
-                    onClick: handlePointClick,
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false,
-                        },
-                        colors: {
-                            enabled: true,
-                        },
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Volatility',
-                            },
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Return',
-                            },
-                        },
-                    },
-                }}
-            />
-        </div>
+        <section>
+            <div
+                className="flex-1 p-2 bg-white rounded-2xl"
+                style={{ height: '550px' }}
+            >
+                <div className="bg-white rounded-2xl overflow-hidden p-4 h-full">
+                    <h1 className="text-xl font-bold mb-4">
+                        Mean-Variance Graph
+                    </h1>
+                    <div className="py-3" />
+                    <div
+                        className="flex justify-center items-center h-full"
+                        style={{ height: '400px' }}
+                    >
+                        <Scatter
+                            data={chartData}
+                            options={{
+                                onClick: handlePointClick,
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false,
+                                    },
+                                    colors: {
+                                        enabled: true,
+                                    },
+                                },
+                                scales: {
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Volatility',
+                                        },
+                                    },
+                                    y: {
+                                        title: {
+                                            display: true,
+                                            text: 'Return',
+                                        },
+                                    },
+                                },
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
+        </section>
     );
 };
 

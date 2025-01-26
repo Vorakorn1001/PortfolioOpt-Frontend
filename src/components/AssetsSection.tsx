@@ -8,21 +8,26 @@ interface AssetsSectionProps {
     portfolio: StockData[];
     excludeFields?: string[];
     handlePortfolioChange: (updatedPortfolio: StockData[]) => void;
+    showHeader?: boolean;
 }
 
 const AssetsSection: React.FC<AssetsSectionProps> = ({
     portfolio,
     excludeFields = [],
     handlePortfolioChange,
+    showHeader = true,
 }) => {
     const fields = [
         'symbol',
         'price',
-        'annualReturn', // New column
+        'annualReturn',
         'annual5YrsReturn',
         'annual3YrsReturn',
         'annual1YrReturn',
         'ytdReturn',
+        'momentum',
+        'beta',
+        'volatility',
         'sector',
         'industry',
         'marketCap',
@@ -30,15 +35,26 @@ const AssetsSection: React.FC<AssetsSectionProps> = ({
         'posteriorReturn',
     ];
 
+    const percentageFields = [
+        'annual5YrsReturn',
+        'annual3YrsReturn',
+        'annual1YrReturn',
+        'priorReturn',
+        'posteriorReturn',
+        'ytdReturn',
+        'volatility',
+        'momentum',
+    ];
+
     const renderField = (item: StockData, field: string) => {
         if (field === 'annualReturn') {
-            return ''; // Leave the new "Annual Return" column blank
+            return '';
         }
 
         if (field === 'priorReturn' || field === 'posteriorReturn') {
             const value = item[field as keyof StockData];
             return value === null || value === undefined ? (
-                <Skeleton width={50} height={20} /> // Skeleton loader
+                <Skeleton width={50} height={20} />
             ) : (
                 value
             );
@@ -56,69 +72,98 @@ const AssetsSection: React.FC<AssetsSectionProps> = ({
     };
 
     return (
-        <div className="p-4">
-            <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
-                <thead>
-                    <tr className="bg-gray-200 text-left">
-                        {fields.map((field) => {
-                            if (excludeFields.includes(field)) return null;
+        <section>
+            <div className="p-2 bg-white rounded-2xl">
+                <div className="bg-white rounded-2xl overflow-hidden p-4">
+                    <h1 className="text-xl font-bold mb-4">Stocks</h1>
+                    <div className="my-6"></div>
+                    <table className="min-w-full text-sm">
+                        <thead>
+                            <tr className="bg-white text-left">
+                                {fields.map((field) => {
+                                    if (excludeFields.includes(field))
+                                        return null;
+                                    // Rename specific fields in the header
+                                    const displayName =
+                                        {
+                                            annual5YrsReturn: '5y',
+                                            annual3YrsReturn: '3y',
+                                            annual1YrReturn: '1y',
+                                            annualReturn: 'Ann. Return',
+                                        }[field] || field;
 
-                            // Rename specific fields in the header
-                            const displayName =
-                                {
-                                    annual5YrsReturn: '5y',
-                                    annual3YrsReturn: '3y',
-                                    annual1YrReturn: '1y',
-                                    annualReturn: 'Ann. Return',
-                                }[field] || field;
+                                    const capitalizedDisplayName =
+                                        displayName.charAt(0).toUpperCase() +
+                                        displayName.slice(1);
 
-                            const capitalizedDisplayName =
-                                displayName.charAt(0).toUpperCase() +
-                                displayName.slice(1);
-
-                            return (
-                                <th
-                                    key={field}
-                                    className="px-2 py-1 border-b text-center"
+                                    return (
+                                        <th
+                                            key={field}
+                                            className="px-2 py-1 text-left font-normal text-xs text-gray-500 w-32"
+                                        >
+                                            {capitalizedDisplayName}
+                                        </th>
+                                    );
+                                })}
+                                <th className="px-2 py-1 text-left font-normal text-xs text-gray-500 w-32"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {portfolio.map((item, rowIndex) => (
+                                <tr
+                                    key={item.id || rowIndex}
+                                    className="hover:bg-gray-50"
                                 >
-                                    {capitalizedDisplayName}
-                                </th>
-                            );
-                        })}
-                        <th className="px-2 py-1 border-b text-center">
-                            Action
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {portfolio.map((item, rowIndex) => (
-                        <tr
-                            key={item.id || rowIndex}
-                            className="hover:bg-gray-50"
-                        >
-                            {fields.map((field) => {
-                                if (excludeFields.includes(field)) return null;
+                                    {fields.map((field) => {
+                                        if (excludeFields.includes(field))
+                                            return null;
 
-                                return (
-                                    <td
-                                        key={`${item.id || rowIndex}-${field}`} // Ensure unique key by combining id and field
-                                        className="px-2 py-1 border-b text-center"
-                                    >
-                                        {renderField(item, field)}
+                                        const value =
+                                            item[field as keyof StockData];
+                                        const isPercentageField =
+                                            percentageFields.includes(field);
+                                        const displayValue =
+                                            value === null
+                                                ? 'N/A'
+                                                : isPercentageField
+                                                  ? `${((value as number) * 100).toFixed(1)}%`
+                                                  : typeof value === 'number'
+                                                    ? value.toFixed(1)
+                                                    : renderField(item, field);
+
+                                        const textColor =
+                                            field === 'volatility'
+                                                ? 'text-black'
+                                                : typeof value === 'number' &&
+                                                    value > 0
+                                                  ? 'text-green-500'
+                                                  : typeof value === 'number' &&
+                                                      value < 0
+                                                    ? 'text-red-500'
+                                                    : 'text-black';
+
+                                        return (
+                                            <td
+                                                key={`${item.id || rowIndex}-${field}`}
+                                                className={`px-2 py-1 text-left ${textColor} w-32`}
+                                            >
+                                                {displayValue}
+                                            </td>
+                                        );
+                                    })}
+                                    <td className="px-2 py-1 text-left w-32">
+                                        <AddRemoveStock
+                                            stock={item}
+                                            onChange={handlePortfolioChange}
+                                        />
                                     </td>
-                                );
-                            })}
-                            <td className="px-2 py-1 border-b text-center">
-                                <AddRemoveStock
-                                    stock={item}
-                                    onChange={handlePortfolioChange}
-                                />
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     );
 };
 

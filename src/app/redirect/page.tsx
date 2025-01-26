@@ -46,7 +46,7 @@ export default function RedirectPage() {
                 image: session.user?.image,
                 activePortfolio: activePortfolio,
             };
-              
+
             const payload = { user: userData, portfolio: savedPortfolioData };
             const response = await axios.post(signInURL, payload);
             if (response.status === 200) {
@@ -54,7 +54,7 @@ export default function RedirectPage() {
                     'portfolioData',
                     JSON.stringify(response.data)
                 );
-                console.log(response.data)
+                console.log(response.data);
             }
         };
 

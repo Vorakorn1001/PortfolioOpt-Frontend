@@ -10,16 +10,17 @@ import AssetsSection from '@/components/AssetsSection';
 import FilterSection from '@/components/FilterSection';
 import RadarData from '@/interfaces/radar.interface';
 
-const updateAssetsUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateAssets';
-
+const updateAssetsUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateAssets';
 
 const Home: React.FC = () => {
     const [sectors, setsectorField] = useState<string[]>([]);
     const [marketCaps, setMarketCap] = useState<string[]>([]);
-    const [keyword, setKeyword] = useState<string>("");
+    const [keyword, setKeyword] = useState<string>('');
     const [radarData, setRadarData] = useState<RadarData>(initialRadarData);
     const [assets, setAssets] = useState<StockData[]>([]);
-    const [portfolioData, setPortfolioData] = useState<PortfolioData>(initialPortfolioData);
+    const [portfolioData, setPortfolioData] =
+        useState<PortfolioData>(initialPortfolioData);
     const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
 
@@ -30,48 +31,46 @@ const Home: React.FC = () => {
         async (
             sectors: string[] = [],
             marketCaps: string[] = [],
-            keyword: string = "",
+            keyword: string = '',
             radarData: RadarData,
             skip: number = 0
         ) => {
-        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL + `/stock/`;
-        const apiUrl = `${baseUrl}filter?skip=${skip}` + (keyword ? `&keyword=${keyword}` : '') 
-        try {
-            if (!apiUrl) throw new Error('API URL is not defined');
-            setIsLoading(true);
-            const payload = {
-                sectors: sectors,
-                marketCaps: marketCaps,
-                radar: radarData.datasets[0].data,
+            const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL + `/stock/`;
+            const apiUrl =
+                `${baseUrl}filter?skip=${skip}` +
+                (keyword ? `&keyword=${keyword}` : '');
+            try {
+                if (!apiUrl) throw new Error('API URL is not defined');
+                setIsLoading(true);
+                const payload = {
+                    sectors: sectors,
+                    marketCaps: marketCaps,
+                    radar: radarData.datasets[0].data,
+                };
+                const response = await axios.post(apiUrl, payload);
+                if (response.data.length === 0) {
+                    setHasMore(false);
+                } else {
+                    setAssets((prevAssets) => {
+                        const existingIds = prevAssets.map((asset) => asset.id); // Extract existing _id's
+                        const newAssets = response.data.filter(
+                            (asset: { id: string }) =>
+                                !existingIds.includes(asset.id)
+                        ); // Filter out existing assets
+                        return [...prevAssets, ...newAssets]; // Merge new assets without duplicates
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setIsLoading(false);
             }
-            const response = await axios.post(apiUrl, payload);
-            if (response.data.length === 0) {
-                setHasMore(false);
-            } else {
-                setAssets((prevAssets) => {
-                    const existingIds = prevAssets.map((asset) => asset.id); // Extract existing _id's
-                    const newAssets = response.data.filter(
-                        (asset: { id: string }) =>
-                            !existingIds.includes(asset.id)
-                    ); // Filter out existing assets
-                    return [...prevAssets, ...newAssets]; // Merge new assets without duplicates
-                });
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
+        },
+        []
+    );
 
     useEffect(() => {
-        fetchData(
-            sectors,
-            marketCaps,
-            keyword,
-            radarData,
-        );
+        fetchData(sectors, marketCaps, keyword, radarData);
         const savedPortfolioData = JSON.parse(
             localStorage.getItem('portfolioData') || 'null'
         );
@@ -103,13 +102,7 @@ const Home: React.FC = () => {
             document.documentElement.offsetHeight - threshold;
 
         if (scrolledToBottom && hasMore && !isLoading) {
-            fetchData(
-                sectors,
-                marketCaps,
-                keyword,
-                radarData,
-                assets.length
-            );
+            fetchData(sectors, marketCaps, keyword, radarData, assets.length);
         }
     }, [assets.length, fetchData, hasMore, isLoading]);
 
@@ -181,17 +174,17 @@ const Home: React.FC = () => {
     }, [sectors, marketCaps, keyword, radarData]);
 
     const onApply = () => {
-        console.log("industrialField", sectors);
-        console.log("marketCap", marketCaps);
-        console.log("keyword", keyword);
-        console.log("radarData", radarData.datasets[0].data);
-      };
+        console.log('industrialField', sectors);
+        console.log('marketCap', marketCaps);
+        console.log('keyword', keyword);
+        console.log('radarData', radarData.datasets[0].data);
+    };
 
     return (
         <div className="bg-gray-100 min-h-screen w-full text-black">
             <NavBar />
-            <div className="w-full max-w-screen-lg mx-auto bg-white min-h-screen p-6">
-                <FilterSection 
+            <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen py-4">
+                <FilterSection
                     industrialField={sectors}
                     setIndustrialField={setsectorField}
                     marketCap={marketCaps}
@@ -202,7 +195,7 @@ const Home: React.FC = () => {
                     setRadarData={setRadarData}
                     onApply={onApply}
                 />
-                <h1 className="text-2xl font-bold">Stocks</h1>
+                <div className="my-2"></div>
                 <AssetsSection
                     portfolio={assets}
                     excludeFields={[
@@ -226,7 +219,6 @@ const Home: React.FC = () => {
 
 export default Home;
 
-
 const initialPortfolioData = {
     activePortfolio: 'Portfolio',
     portfolios: {
@@ -235,16 +227,10 @@ const initialPortfolioData = {
             investorViews: [],
         },
     },
-}
+};
 
 const initialRadarData = {
-    labels: [
-        'High Return',
-        'Low Volatile',
-        'Market Cap.',
-        'Beta',
-        'Momentum',
-    ],
+    labels: ['High Return', 'Low Volatile', 'Market Cap.', 'Beta', 'Momentum'],
     datasets: [
         {
             label: 'Portfolio Performance',
@@ -254,4 +240,4 @@ const initialRadarData = {
             borderWidth: 2,
         },
     ],
-  }
+};

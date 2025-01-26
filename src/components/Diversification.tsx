@@ -18,22 +18,25 @@ const CustomTooltip = ({ active }: any) => {
 
 const Diversification: React.FC<DiversificationProps> = ({ data }) => {
     return (
-        <div className="bg-white shadow p-4 rounded">
-            <h2 className="text-xl font-bold text-black">Diversification</h2>
-            <Sankey
-                width={400}
-                height={400}
-                data={data}
-                nodeWidth={10}
-                nodePadding={60}
-                linkCurvature={0.61}
-                iterations={64}
-                link={<Link />}
-                node={<Node containerWidth={400} />}
-            >
-                <Tooltip content={<CustomTooltip />} />
-            </Sankey>
-            ;
+        <div className="p-2 bg-white rounded-2xl" style={{ height: '550px' }}>
+            <div className="bg-white rounded-2xl overflow-hidden p-4">
+                <h1 className="text-xl font-bold mb-4">Diversification</h1>
+                <div className="flex justify-center items-center py-6">
+                    <Sankey
+                        width={400}
+                        height={400}
+                        data={data}
+                        nodeWidth={10}
+                        nodePadding={60}
+                        linkCurvature={0.61}
+                        iterations={64}
+                        link={<Link />}
+                        node={<Node containerWidth={400} />}
+                    >
+                        <Tooltip content={<CustomTooltip />} />
+                    </Sankey>
+                </div>
+            </div>
         </div>
     );
 };

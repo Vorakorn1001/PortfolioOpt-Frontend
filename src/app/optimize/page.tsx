@@ -23,11 +23,14 @@ const Optimize: React.FC = () => {
     const [MeanVarianceAnalysisData, setMeanVarianceAnalysisData] =
         useState(sampleData);
 
-    const [selectedTimeFrame, setSelectedTimeFrame] = useState<'5y' | '3y' | '1y' | '6m' | 'ytd'>('5y');  
+    const [selectedTimeFrame, setSelectedTimeFrame] = useState<
+        '5y' | '3y' | '1y' | '6m' | 'ytd'
+    >('5y');
 
     const optimizeUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/optimize';
     const changeUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/optimize/change';
-    const performanceUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/optimize/performance';
+    const performanceUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL + '/optimize/performance';
 
     useEffect(() => {
         const savedPortfolioData = JSON.parse(
@@ -51,7 +54,8 @@ const Optimize: React.FC = () => {
         const fetchOptimizePage = async () => {
             if (!optimizeUrl) throw new Error('API URL is not defined');
             try {
-                const optimizeUrlwithTimeFrame = optimizeUrl + '?timeframe=' + selectedTimeFrame;
+                const optimizeUrlwithTimeFrame =
+                    optimizeUrl + '?timeframe=' + selectedTimeFrame;
                 console.log(optimizeUrlwithTimeFrame);
                 const response = await axios.post(optimizeUrlwithTimeFrame, {
                     stocks: savedPortfolio.map(
@@ -78,27 +82,34 @@ const Optimize: React.FC = () => {
 
     const handleWeightChange = async (weights: number[]) => {
         if (!changeUrl) throw new Error('API URL is not defined');
-        const response = await axios.post(changeUrl  + '?timeframe=' + selectedTimeFrame, {
-            stocks: stocksOrder,
-            weights: weights,
-            timeframe: selectedTimeFrame,
-        });
+        const response = await axios.post(
+            changeUrl + '?timeframe=' + selectedTimeFrame,
+            {
+                stocks: stocksOrder,
+                weights: weights,
+                timeframe: selectedTimeFrame,
+            }
+        );
         setPortfolioWeights(response.data.weights);
         setDiversificationData(response.data.diversification);
         setPortfolioMetrics(response.data.metrics);
         setPortfolioVsMarketData(response.data.portfolioVsMarket);
     };
 
-
-    const handleTimeFrameChange = async (timeframe: '5y' | '3y' | '1y' | '6m' | 'ytd') => {
+    const handleTimeFrameChange = async (
+        timeframe: '5y' | '3y' | '1y' | '6m' | 'ytd'
+    ) => {
         if (['5y', '3y', '1y', '6m', 'ytd'].includes(timeframe)) {
             setSelectedTimeFrame(timeframe);
             const payload = {
                 stocks: stocksOrder,
                 weights: porfolioWeights,
                 timeFrame: timeframe,
-            }
-            const response = await axios.post(performanceUrl  + '?timeframe=' + timeframe, payload);
+            };
+            const response = await axios.post(
+                performanceUrl + '?timeframe=' + timeframe,
+                payload
+            );
             setPortfolioMetrics(response.data.metrics);
             setPortfolioVsMarketData(response.data.portfolioVsMarket);
         } else {
@@ -120,36 +131,41 @@ const Optimize: React.FC = () => {
     return (
         <div className="bg-gray-100 min-h-screen w-full text-black">
             <NavBar />
-            <div className="w-full max-w-screen-lg mx-auto bg-white min-h-screen p-6">
-                <div className="grid grid-cols-2 gap-4">
+            <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen">
+                <div className="py-2" />
+                <div className="grid grid-cols-2 gap-2">
                     <AssetProportion
                         Labels={stocksOrder}
                         Values={porfolioWeights}
                     />
                     <Diversification data={diversificationData} />
                 </div>
-                <div className="py-4">
-                    <KeyMetrics metrics={portfolioMetrics} />
-                </div>
-                <div className="py-4">
-                    <HistoricalPerformance
-                        portfolioVsMarket={portfolioVsMarketData}
-                        handleTimeFrameChange={handleTimeFrameChange}
-                    />
-                </div>
-                <div className="py-4">
-                    <MeanVarianceAnalysis
-                        data={MeanVarianceAnalysisData}
-                        setWeight={handleWeightChange}
-                    />
-                </div>
+
+                <div className="py-1" />
+
+                <MeanVarianceAnalysis
+                    data={MeanVarianceAnalysisData}
+                    setWeight={handleWeightChange}
+                />
+
+                <div className="py-1" />
+
+                <KeyMetrics metrics={portfolioMetrics} />
+
+                <div className="py-1" />
+
+                <HistoricalPerformance
+                    portfolioVsMarket={portfolioVsMarketData}
+                    selectedTimeframe={selectedTimeFrame}
+                    handleTimeFrameChange={handleTimeFrameChange}
+                />
+                <div className="py-10" />
             </div>
         </div>
     );
 };
 
 export default Optimize;
-
 
 const data = {
     nodes: [{ name: 'Portfolio 100%' }, { name: 'Place Holder-1' }],

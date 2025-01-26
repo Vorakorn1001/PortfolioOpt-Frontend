@@ -8,19 +8,19 @@ import StockData from '@/interfaces/stock.interface';
 import InvestorView from '@/interfaces/view.interface';
 import Limit from '@/interfaces/limit.interface';
 
+import PortfolioSelectionSection from '@/components/PortfolioSelectionSection';
 import AssetsSection from '@/components/AssetsSection';
 import CorrelationMatrixSection from '@/components/CorrelationMatrixSection';
 import InvestorsViewSection from '@/components/InvestorsViewSection';
 import ConstraintSection from '@/components/ConstraintSection';
 import AddViewPopup from '@/components/AddViewPopup';
+import CreateStockPopup from '@/components/CreateStockPopup';
 import NavBar from '@/components/NavBar';
 
 interface portfolioAndInvestorViews {
     assets: StockData[];
     investorViews: InvestorView[];
 }
-
-
 
 const Portfolio: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,7 +34,8 @@ const Portfolio: React.FC = () => {
     const [stocksOrder, setStocksOrder] = useState<string[]>([]);
     const [correlationMatrix, setCorrelationMatrix] = useState<number[][]>([]);
     const [showPortfolio, setShowPortfolio] = useState<StockData[]>([]);
-    const [portfolioAndInvestorViews, setPortfolioAndInvestorViews] = useState<portfolioAndInvestorViews>(initialPortfolioAndInvestorViews);
+    const [portfolioAndInvestorViews, setPortfolioAndInvestorViews] =
+        useState<portfolioAndInvestorViews>(initialPortfolioAndInvestorViews);
     const [isInitialFetchDone, setIsInitialFetchDone] = useState(false);
     const [limits, setLimits] = useState<Limit>(initialLimit);
     const [portfolios, setPortfolios] = useState<string[]>([]);
@@ -42,9 +43,12 @@ const Portfolio: React.FC = () => {
 
     const PortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/portfolio/';
     const uploadIBKRUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/ibkr/';
-    const updatePortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updatePortfolio';
-    const deletePortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/deletePortfolio';
-    const updateActivePortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateActivePortfolio';
+    const updatePortfolioUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updatePortfolio';
+    const deletePortfolioUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL + '/user/deletePortfolio';
+    const updateActivePortfolioUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateActivePortfolio';
 
     const { data: session, status } = useSession();
 
@@ -77,7 +81,7 @@ const Portfolio: React.FC = () => {
         setPortfolios(Object.keys(savedPortfolioData.portfolios));
         setPortfolioAndInvestorViews(portAndView);
         setIsInitialFetchDone(true);
-        
+
         if (activePortfolio.length < 2) {
             setValidPortfolio(false);
         }
@@ -87,23 +91,28 @@ const Portfolio: React.FC = () => {
         const views = portfolio.investorViews;
         const assets = portfolio.assets;
         const symbols = assets.map((stock) => stock.symbol);
-        return views.filter((view) => 
-            symbols.includes(view.asset1) && 
-            (!view.asset2 || symbols.includes(view.asset2))
+        return views.filter(
+            (view) =>
+                symbols.includes(view.asset1) &&
+                (!view.asset2 || symbols.includes(view.asset2))
         );
-    }
+    };
 
     const hasConflictingViews = (portfolio: portfolioAndInvestorViews) => {
         const views = portfolio.investorViews;
         const assets = portfolio.assets;
         const symbols = assets.map((stock) => stock.symbol);
-        return views.some((view) => 
-            !symbols.includes(view.asset1) || 
-            (view.asset2 && !symbols.includes(view.asset2))
+        return views.some(
+            (view) =>
+                !symbols.includes(view.asset1) ||
+                (view.asset2 && !symbols.includes(view.asset2))
         );
-    }
+    };
 
-    const updatePortfolio = async (portfolio: portfolioAndInvestorViews, activePortfolio: string) => {
+    const updatePortfolio = async (
+        portfolio: portfolioAndInvestorViews,
+        activePortfolio: string
+    ) => {
         const savedPortfolioData = JSON.parse(
             localStorage.getItem('portfolioData') || 'null'
         );
@@ -112,7 +121,7 @@ const Portfolio: React.FC = () => {
         // if (!activePortfolioName) return;
 
         portfolio.investorViews = getNonConflictingViews(portfolio);
-        
+
         // Update the active portfolio in localStorage
         savedPortfolioData.portfolios[activePortfolio] = portfolio;
         localStorage.setItem(
@@ -136,7 +145,7 @@ const Portfolio: React.FC = () => {
             // console.log("Update Payload", payload);
             await axios.post(updatePortfolioUrl, payload);
         }
-    }
+    };
 
     // portfolioAndInvestorViews listener
     // Save the active portfolio's investorViews in localStorage and update the portfolio data
@@ -144,7 +153,6 @@ const Portfolio: React.FC = () => {
         if (!isInitialFetchDone) return;
         // console.log("PortfolioAndInvestorViews", portfolioAndInvestorViews);
         const saveActivePortfolio = async () => {
-            
             updatePortfolio(portfolioAndInvestorViews, selectedPortfolio);
 
             if (portfolioAndInvestorViews.assets.length < 2) {
@@ -158,10 +166,12 @@ const Portfolio: React.FC = () => {
 
             try {
                 const response = await axios.post(PortfolioUrl, {
-                    stocks: portfolioAndInvestorViews.assets.map((stock) => stock.symbol),
+                    stocks: portfolioAndInvestorViews.assets.map(
+                        (stock) => stock.symbol
+                    ),
                     investorViews: portfolioAndInvestorViews.investorViews,
                 });
-                
+
                 const stocksOrder = response.data.stocks;
                 const correlationMatrix = response.data.correlationMatrix;
                 const priorReturns = response.data.priorReturns;
@@ -176,14 +186,18 @@ const Portfolio: React.FC = () => {
                         : responseLimits.minVolatility
                 );
 
-                const enrichedPortfolio: StockData[] = stocksOrder.map((symbol: string, index: number) => {
-                    const stock = portfolioAndInvestorViews.assets.find((s) => s.symbol === symbol);
-                    return {
-                        ...stock,
-                        priorReturn: priorReturns[index],
-                        posteriorReturn: posteriorReturns[index],
-                    };
-                });
+                const enrichedPortfolio: StockData[] = stocksOrder.map(
+                    (symbol: string, index: number) => {
+                        const stock = portfolioAndInvestorViews.assets.find(
+                            (s) => s.symbol === symbol
+                        );
+                        return {
+                            ...stock,
+                            priorReturn: priorReturns[index],
+                            posteriorReturn: posteriorReturns[index],
+                        };
+                    }
+                );
                 setShowPortfolio(enrichedPortfolio);
             } catch (error) {
                 console.error('Error fetching updated portfolio data:', error);
@@ -201,7 +215,9 @@ const Portfolio: React.FC = () => {
         );
         if (!savedPortfolioData) return;
         // console.log("Save", savedPortfolioData.portfolios[selectedPortfolio]);
-        setPortfolioAndInvestorViews(savedPortfolioData.portfolios[selectedPortfolio]);
+        setPortfolioAndInvestorViews(
+            savedPortfolioData.portfolios[selectedPortfolio]
+        );
     }, [selectedPortfolio]);
 
     const handlePortfolioChange = async (updatedPortfolio: StockData[]) => {
@@ -217,7 +233,10 @@ const Portfolio: React.FC = () => {
     };
 
     const handleAddView = (newView: InvestorView) => {
-        const updatedViews = [...portfolioAndInvestorViews.investorViews, newView];
+        const updatedViews = [
+            ...portfolioAndInvestorViews.investorViews,
+            newView,
+        ];
         setPortfolioAndInvestorViews({
             assets: portfolioAndInvestorViews.assets,
             investorViews: updatedViews,
@@ -225,7 +244,9 @@ const Portfolio: React.FC = () => {
     };
 
     const handleRemoveView = (index: number) => {
-        const updatedViews = portfolioAndInvestorViews.investorViews.filter((_, i) => i !== index);
+        const updatedViews = portfolioAndInvestorViews.investorViews.filter(
+            (_, i) => i !== index
+        );
         setPortfolioAndInvestorViews({
             assets: portfolioAndInvestorViews.assets,
             investorViews: updatedViews,
@@ -285,8 +306,77 @@ const Portfolio: React.FC = () => {
         }
     };
 
+    const handleDeletePortfolio = async () => {
+        if (portfolios.length <= 1) {
+            alert('Cannot delete the only portfolio.');
+            return;
+        }
+        const savedPortfolioData = JSON.parse(
+            localStorage.getItem('portfolioData') || '{}'
+        );
+
+        delete savedPortfolioData.portfolios[selectedPortfolio];
+        const newActivePortfolio = Object.keys(
+            savedPortfolioData.portfolios
+        )[0];
+
+        if (status === 'authenticated') {
+            await axios.post(
+                deletePortfolioUrl + '?portfolioName=' + selectedPortfolio,
+                {
+                    name: session.user?.name,
+                    email: session.user?.email,
+                    image: session.user?.image,
+                    activePortfolio: newActivePortfolio,
+                }
+            );
+        }
+        savedPortfolioData.activePortfolio = newActivePortfolio;
+        localStorage.setItem(
+            'portfolioData',
+            JSON.stringify(savedPortfolioData)
+        );
+
+        setPortfolios(Object.keys(savedPortfolioData.portfolios));
+        setSelectedPortfolio(newActivePortfolio);
+        setPortfolioAndInvestorViews(
+            savedPortfolioData.portfolios[newActivePortfolio]
+        );
+    };
+
+    const handlePortfolioSelect = async (
+        e: React.ChangeEvent<HTMLSelectElement>
+    ) => {
+        const selected = e.target.value;
+        const savedPortfolioData = JSON.parse(
+            localStorage.getItem('portfolioData') || '{}'
+        );
+        savedPortfolioData.activePortfolio = selected;
+        localStorage.setItem(
+            'portfolioData',
+            JSON.stringify(savedPortfolioData)
+        );
+        if (status === 'authenticated') {
+            await axios.post(updateActivePortfolioUrl, {
+                name: session.user?.name,
+                email: session.user?.email,
+                image: session.user?.image,
+                activePortfolio: selected,
+            });
+        }
+        setSelectedPortfolio(selected);
+        setPortfolioAndInvestorViews(savedPortfolioData.portfolios[selected]);
+    };
+
+    const [showCreatePortfolioPopup, setShowCreatePortfolioPopup] =
+        useState(false);
+    const [newPortfolioName, setNewPortfolioName] = useState('');
+
     const handleCreatePortfolio = async () => {
-        const newPortfolioName = prompt('Enter the name of the new portfolio:');
+        setShowCreatePortfolioPopup(true);
+    };
+
+    const handleSaveNewPortfolio = async () => {
         if (newPortfolioName) {
             const savedPortfolioData = JSON.parse(
                 localStorage.getItem('portfolioData') || '{}'
@@ -303,156 +393,79 @@ const Portfolio: React.FC = () => {
             );
             setPortfolios(Object.keys(savedPortfolioData.portfolios));
             setSelectedPortfolio(newPortfolioName);
-            setPortfolioAndInvestorViews(savedPortfolioData.portfolios[newPortfolioName]);
+            setPortfolioAndInvestorViews(
+                savedPortfolioData.portfolios[newPortfolioName]
+            );
+            setShowCreatePortfolioPopup(false);
+            setNewPortfolioName('');
         }
     };
 
-    const handleDeletePortfolio = async () => {
-        if (portfolios.length <= 1) {
-            alert('Cannot delete the only portfolio.');
-            return;
-        }
-        const savedPortfolioData = JSON.parse(
-            localStorage.getItem('portfolioData') || '{}'
-        );
-
-        delete savedPortfolioData.portfolios[selectedPortfolio];
-        const newActivePortfolio = Object.keys(savedPortfolioData.portfolios)[0];
-
-        if (status === 'authenticated') {
-            await axios.post(deletePortfolioUrl + "?portfolioName=" + selectedPortfolio, {
-                name: session.user?.name,
-                email: session.user?.email,
-                image: session.user?.image,
-                activePortfolio: newActivePortfolio,
-            });
-        }
-        savedPortfolioData.activePortfolio = newActivePortfolio;
-        localStorage.setItem(
-            'portfolioData',
-            JSON.stringify(savedPortfolioData)
-        );
-
-        setPortfolios(Object.keys(savedPortfolioData.portfolios));
-        setSelectedPortfolio(newActivePortfolio);
-        setPortfolioAndInvestorViews(savedPortfolioData.portfolios[newActivePortfolio]);
-    };
-
-    const handlePortfolioSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selected = e.target.value;
-        const savedPortfolioData = JSON.parse(
-            localStorage.getItem('portfolioData') || '{}'
-        );
-        savedPortfolioData.activePortfolio = selected;
-        localStorage.setItem(
-            'portfolioData',
-            JSON.stringify(savedPortfolioData)
-        );
-        if (status === 'authenticated') {
-            const userData = {
-                name: session.user?.name,
-                email: session.user?.email,
-                image: session.user?.image,
-                activePortfolio: selected,
-            };
-            await axios.post(deletePortfolioUrl, {
-                user: userData,
-                portfolio: savedPortfolioData.portfolios[selectedPortfolio],
-            });
-        }
-        setSelectedPortfolio(selected);
-        setPortfolioAndInvestorViews(savedPortfolioData.portfolios[selected]);
+    const handleCancelCreatePortfolio = () => {
+        setShowCreatePortfolioPopup(false);
+        setNewPortfolioName('');
     };
 
     return (
         <div className="bg-gray-100 min-h-screen w-full text-black">
             <NavBar />
-            <div className="w-full max-w-screen-lg mx-auto bg-white min-h-screen p-6">
+            <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen">
                 <input
                     ref={fileInputRef}
                     type="file"
                     style={{ display: 'none' }}
                     onChange={handleFileChange}
                 />
-                <div className="flex justify-between items-center ">
-                    <h1 className="text-2xl font-bold">Portfolio</h1>
-                    <button
-                        onClick={handleButtonClick}
-                        disabled={uploading}
-                        style={{
-                            backgroundColor: 'black',
-                            color: 'white',
-                            padding: '14px 16px',
-                            border: 'none',
-                            borderRadius: '5px',
-                            fontSize: '16px',
-                            cursor: 'pointer',
-                            width: '200px',
-                            margin: '10px',
-                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-                        }}
-                    >
-                        {uploading ? 'Uploading...' : 'Upload IBKR CSV File'}
-                    </button>
-                </div>
-
-                <div className="flex justify-between items-center mt-4">
-                    <select
-                        value={selectedPortfolio}
-                        onChange={handlePortfolioSelect}
-                        className="p-2 border rounded"
-                    >
-                        {portfolios.map((portfolioName) => (
-                            <option key={portfolioName} value={portfolioName}>
-                                {portfolioName}
-                            </option>
-                        ))}
-                    </select>
-                    <button
-                        onClick={handleCreatePortfolio}
-                        className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-700"
-                    >
-                        Create Portfolio
-                    </button>
-                    <button
-                        onClick={handleDeletePortfolio}
-                        className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-700"
-                        disabled={portfolios.length <= 1}
-                    >
-                        Delete Portfolio
-                    </button>
-                </div>
 
                 <div>
+                    <PortfolioSelectionSection
+                        portfolios={portfolios}
+                        selectedPortfolio={selectedPortfolio}
+                        handlePortfolioSelect={handlePortfolioSelect}
+                        handleCreatePortfolio={handleCreatePortfolio}
+                        handleDeletePortfolio={handleDeletePortfolio}
+                        handleButtonClick={handleButtonClick}
+                        uploading={uploading}
+                    />
+
+                    <div className="my-2"></div>
+
                     <AssetsSection
                         portfolio={showPortfolio}
                         excludeFields={['price', 'sector', 'industry']}
                         handlePortfolioChange={handlePortfolioChange}
+                        showHeader={true}
                     />
+
                     {validPortfolio ? (
                         <>
+                            <div className="my-2"></div>
+
                             <CorrelationMatrixSection
                                 correlationMatrix={correlationMatrix}
                                 stocksOrder={stocksOrder}
                             />
+
+                            <div className="my-2"></div>
+
                             <InvestorsViewSection
-                                investorViews={portfolioAndInvestorViews.investorViews}
+                                investorViews={
+                                    portfolioAndInvestorViews.investorViews
+                                }
                                 setShowPopup={setShowPopup}
                                 onRemoveView={handleRemoveView}
                             />
+
+                            <div className="my-2"></div>
+
                             <ConstraintSection
                                 limits={limits}
                                 selectedMetric={selectedMetric}
                                 setSelectedMetric={setSelectedMetric}
                                 sliderValue={sliderValue}
                                 setSliderValue={setSliderValue}
+                                handleOptimize={handleOptimize}
                             />
-                            <button
-                                className="mt-4 bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800"
-                                onClick={handleOptimize}
-                            >
-                                Optimize
-                            </button>
                         </>
                     ) : (
                         <div className="text-red-500">
@@ -464,9 +477,18 @@ const Portfolio: React.FC = () => {
                         isVisible={showPopup}
                         onClose={() => setShowPopup(false)}
                         onSave={handleAddView}
-                        portfolio={portfolioAndInvestorViews.assets.map((stock) => ({
-                            symbol: stock.symbol,
-                        }))}
+                        portfolio={portfolioAndInvestorViews.assets.map(
+                            (stock) => ({
+                                symbol: stock.symbol,
+                            })
+                        )}
+                    />
+                    <CreateStockPopup
+                        isVisible={showCreatePortfolioPopup}
+                        onCancel={handleCancelCreatePortfolio}
+                        onSave={handleSaveNewPortfolio}
+                        newPortfolioName={newPortfolioName}
+                        setNewPortfolioName={setNewPortfolioName}
                     />
                 </div>
             </div>
@@ -481,7 +503,7 @@ const initialLimit: Limit = {
     maxReturn: 100,
     minVolatility: 0,
     maxVolatility: 100,
-}
+};
 
 const initialPortfolioAndInvestorViews: portfolioAndInvestorViews = {
     assets: [],

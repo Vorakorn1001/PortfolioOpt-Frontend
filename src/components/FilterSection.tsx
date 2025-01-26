@@ -19,6 +19,30 @@ Chart.register(
     Legend
 );
 
+const sectors = [
+    'Finance',
+    'Consumer Discretionary',
+    'Health Care',
+    'Basic Materials',
+    'Technology',
+    'Real Estate',
+    'Energy',
+    'Industrials',
+    'Utilities',
+    'Consumer Staples',
+    'Miscellaneous',
+    'Telecommunications'
+];
+
+const marketCapOptions = [
+    { label: 'Mega', description: '> $200B' },
+    { label: 'Large', description: '$10B - $200B' },
+    { label: 'Medium', description: '$2B - $10B' },
+    { label: 'Small', description: '$300M - $2B' },
+    { label: 'Micro', description: '$50M - $300M' },
+    { label: 'Nano', description: '< $50M' },
+];
+
 interface FilterSectionProps {
     industrialField: string[];
     setIndustrialField: React.Dispatch<React.SetStateAction<string[]>>;
@@ -36,16 +60,18 @@ interface FilterSectionProps {
             borderWidth: number;
         }[];
     };
-    setRadarData: React.Dispatch<React.SetStateAction<{
-        labels: string[];
-        datasets: {
-            label: string;
-            data: number[];
-            backgroundColor: string;
-            borderColor: string;
-            borderWidth: number;
-        }[];
-    }>>;
+    setRadarData: React.Dispatch<
+        React.SetStateAction<{
+            labels: string[];
+            datasets: {
+                label: string;
+                data: number[];
+                backgroundColor: string;
+                borderColor: string;
+                borderWidth: number;
+            }[];
+        }>
+    >;
     onApply: () => void;
 }
 
@@ -81,6 +107,9 @@ const FilterSection: React.FC<FilterSectionProps> = ({
             tooltip: {
                 enabled: false,
             },
+            legend: {
+                display: false, // Hide the legend
+            },
         },
         animation: false as false, // Disable animations
         onHover: (event: any, chartElement: any) => {
@@ -95,7 +124,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     const [draggedPointIndex, setDraggedPointIndex] = useState<number | null>(
         null
     );
-    const sectors = ['Finance', 'Technology', 'Healthcare']
 
     const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
@@ -106,7 +134,9 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         );
     };
 
-    const handleMarketCapChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMarketCapChange = (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
         const value = event.target.value;
         setMarketCap((prevCaps) =>
             prevCaps.includes(value)
@@ -153,7 +183,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         const maxDistance = Math.min(centerX - left, centerY - top);
 
         // Adjust sensitivity by requiring a minimum threshold distance for a step change
-        const sensitivity = 0.3; // Higher value makes it less sensitive (e.g., 0.7 = 70% of a step)
+        const sensitivity = 1; // Higher value makes it less sensitive (e.g., 0.7 = 70% of a step)
         const scaledValue = (distanceFromCenter / maxDistance) * 5; // Adjusted for 5 steps
         const stepThreshold = 1 * sensitivity; // Distance required for each step
         const newValue =
@@ -173,7 +203,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         const hasChanged = !newData.every(
             (value, index) => value === radarData.datasets[0].data[index]
         );
-    
+
         if (!hasChanged) {
             return;
         }
@@ -197,48 +227,137 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [marketCapDropdownOpen, setMarketCapDropdownOpen] = useState(false);
 
-    const radarSizeScale = 60; // Adjust the radar chart size (Percentage of the container width)
+    const radarSizeScale = 80; // Adjust the radar chart size (Percentage of the container width)
 
     const toggleDropdown = () => {
         setDropdownOpen(!dropdownOpen);
+        if (marketCapDropdownOpen) {
+            setMarketCapDropdownOpen(false);
+        }
     };
 
     const toggleMarketCapDropdown = () => {
         setMarketCapDropdownOpen(!marketCapDropdownOpen);
+        if (dropdownOpen) {
+            setDropdownOpen(false);
+        }
     };
 
     return (
-        <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '8px' }}>
+        <div className="p-2 bg-white rounded-2xl flex">
             <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    padding: '20px',
-                }}
+                className="bg-white rounded-2xl overflow-hidden p-4 flex-1"
+                style={{ marginRight: '10px' }}
             >
+                <h1 className="text-xl font-bold mb-4">Filter</h1>
                 {/* Filter Section */}
-                <div style={{ flex: 1, marginRight: '20px' }}>
-                    <h1 style={{ fontSize: 20, fontWeight: 'bold' }}>Filter</h1>
-                    <div style={{ marginBottom: '20px' }}></div>
-                    <label
-                        htmlFor="sectorField"
-                        style={{ display: 'block', fontWeight: 'bold' }}
-                    >
-                        Sector Field
-                    </label>
-                    <div
-                        id="sectorField"
+                <div style={{ marginBottom: '20px' }}></div>
+                <label
+                    htmlFor="sectorField"
+                    style={{
+                        display: 'block',
+                        fontWeight: 'bold',
+                        marginLeft: '25px',
+                        marginBottom: '10px', // Added padding
+                    }}
+                >
+                    Sector Field
+                </label>
+                <div
+                    id="sectorField"
+                    style={{
+                        width: '80%',
+                        padding: '8px',
+                        marginTop: '5px',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        position: 'relative',
+                        marginLeft: '25px',
+                        marginBottom: '20px', // Added padding
+                    }}
+                >
+                    <button
+                        onClick={toggleDropdown}
                         style={{
                             width: '100%',
+                            padding: '8px',
+                            border: 'none',
+                            background: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        Select Sector Fields
+                    </button>
+                    {dropdownOpen && (
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                background: '#fff',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px',
+                                zIndex: 1,
+                                maxHeight: '200px',
+                                overflowY: 'auto',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                padding: '10px',
+                            }}
+                        >
+                            {sectors.map((field) => (
+                                <label
+                                    key={field}
+                                    style={{
+                                        marginBottom: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        value={field}
+                                        checked={industrialField.includes(
+                                            field
+                                        )}
+                                        onChange={handleFieldChange}
+                                        style={{ marginRight: '10px' }}
+                                    />
+                                    {field}
+                                </label>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div>
+                    <label
+                        htmlFor="marketCap"
+                        style={{
+                            display: 'block',
+                            fontWeight: 'bold',
+                            marginLeft: '25px',
+                            marginBottom: '10px', // Added padding
+                        }}
+                    >
+                        Market Cap. Field
+                    </label>
+                    <div
+                        id="marketCap"
+                        style={{
+                            width: '80%',
                             padding: '8px',
                             marginTop: '5px',
                             border: '1px solid #ccc',
                             borderRadius: '4px',
                             position: 'relative',
+                            marginLeft: '25px',
+                            marginBottom: '20px', // Added padding
                         }}
                     >
                         <button
-                            onClick={toggleDropdown}
+                            onClick={toggleMarketCapDropdown}
                             style={{
                                 width: '100%',
                                 padding: '8px',
@@ -248,9 +367,9 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                                 cursor: 'pointer',
                             }}
                         >
-                            Select Sector Fields
+                            Select Market Cap.
                         </button>
-                        {dropdownOpen && (
+                        {marketCapDropdownOpen && (
                             <div
                                 style={{
                                     position: 'absolute',
@@ -261,179 +380,94 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                                     border: '1px solid #ccc',
                                     borderRadius: '4px',
                                     zIndex: 1,
-                                    maxHeight: '200px',
+                                    maxHeight: '120px',
                                     overflowY: 'auto',
                                     display: 'flex',
-                                    flexDirection: 'column', // Make it vertical
+                                    flexDirection: 'column',
+                                    padding: '10px',
                                 }}
                             >
-                                {sectors.map((field) => (
-                                    <label key={field} style={{ marginBottom: '8px' }}>
+                                {marketCapOptions.map((cap) => (
+                                    <label
+                                        key={cap.label}
+                                        style={{
+                                            marginBottom: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                        }}
+                                    >
                                         <input
                                             type="checkbox"
-                                            value={field}
-                                            checked={industrialField.includes(field)}
-                                            onChange={handleFieldChange}
+                                            value={cap.label}
+                                            checked={marketCap.includes(cap.label)}
+                                            onChange={handleMarketCapChange}
+                                            style={{ marginRight: '10px' }}
                                         />
-                                        {field}
+                                        {cap.label} ({cap.description})
                                     </label>
                                 ))}
                             </div>
                         )}
-                    </div>
-                    <div>
-                        <label
-                            htmlFor="marketCap"
-                            style={{ display: 'block', fontWeight: 'bold' }}
-                        >
-                            Market Cap
-                        </label>
-                        <div
-                            id="marketCap"
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                marginTop: '5px',
-                                border: '1px solid #ccc',
-                                borderRadius: '4px',
-                                position: 'relative',
-                            }}
-                        >
-                            <button
-                                onClick={toggleMarketCapDropdown}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    border: 'none',
-                                    background: 'none',
-                                    textAlign: 'left',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                Select Market Cap
-                            </button>
-                            {marketCapDropdownOpen && (
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        top: '100%',
-                                        left: 0,
-                                        right: 0,
-                                        background: '#fff',
-                                        border: '1px solid #ccc',
-                                        borderRadius: '4px',
-                                        zIndex: 1,
-                                        maxHeight: '200px',
-                                        overflowY: 'auto',
-                                    }}
-                                >
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            value="Mega"
-                                            checked={marketCap.includes('Mega')}
-                                            onChange={handleMarketCapChange}
-                                        />
-                                        Mega ({'>'}$200B)
-                                    </label>
-                                    <br />
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            value="Large"
-                                            checked={marketCap.includes('Large')}
-                                            onChange={handleMarketCapChange}
-                                        />
-                                        Large ($10B-$200B)
-                                    </label>
-                                    <br />
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            value="Medium"
-                                            checked={marketCap.includes('Medium')}
-                                            onChange={handleMarketCapChange}
-                                        />
-                                        Medium ($2B-$10B)
-                                    </label>
-                                    <br />
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            value="Small"
-                                            checked={marketCap.includes('Small')}
-                                            onChange={handleMarketCapChange}
-                                        />
-                                        Small ($300M-$2B)
-                                    </label>
-                                    <br />
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            value="Micro"
-                                            checked={marketCap.includes('Micro')}
-                                            onChange={handleMarketCapChange}
-                                        />
-                                        Micro ($50M-$300M)
-                                    </label>
-                                    <br />
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            value="Nano"
-                                            checked={marketCap.includes('Nano')}
-                                            onChange={handleMarketCapChange}
-                                        />
-                                        Nano (&lt;$50M)
-                                    </label>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    <div>
-                        <label
-                            htmlFor="keyword"
-                            style={{ display: 'block', fontWeight: 'bold' }}
-                        >
-                            Keyword Search
-                        </label>
-                        <input
-                            id="keyword"
-                            type="text"
-                            value={keyword}
-                            onChange={handleKeywordChange}
-                            placeholder="Search..."
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                marginTop: '5px',
-                                border: '1px solid #ccc',
-                                borderRadius: '4px',
-                            }}
-                        />
+
+
+
                     </div>
                 </div>
+                <div>
+                    <label
+                        htmlFor="keyword"
+                        style={{
+                            display: 'block',
+                            fontWeight: 'bold',
+                            marginLeft: '25px',
+                            marginBottom: '10px', // Added padding
+                        }}
+                    >
+                        Keyword Search
+                    </label>
+                    <input
+                        id="keyword"
+                        type="text"
+                        value={keyword}
+                        onChange={handleKeywordChange}
+                        placeholder="Search..."
+                        style={{
+                            width: '80%',
+                            padding: '8px',
+                            marginTop: '5px',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            marginLeft: '25px',
+                            marginBottom: '20px', // Added padding
+                        }}
+                    />
+                </div>
+            </div>
 
-                {/* Radar Chart Section */}
+            {/* Radar Chart Section */}
+            <div
+                style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
                 <div
                     style={{
-                        flex: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        width: `${radarSizeScale}%`,
+                        maxWidth: '600px',
                     }}
                 >
-                    <div style={{ width: `${radarSizeScale}%`, maxWidth: '600px' }}>
-                        <Radar
-                            ref={chartRef}
-                            data={radarData}
-                            options={radarOptions}
-                            onMouseDown={handleMouseDown}
-                            onMouseMove={handleMouseMove}
-                            onMouseUp={handleMouseUp}
-                        />
-                    </div>
+                    <Radar
+                        ref={chartRef}
+                        data={radarData}
+                        options={radarOptions}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                    />
                 </div>
             </div>
         </div>

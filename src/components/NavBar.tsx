@@ -17,25 +17,22 @@ export default function NavBar() {
         signIn('google', { callbackUrl: redirectUrl });
     };
     const handleLogOut = () => {
-        // const currentUrl = window.location.href;
-        // const redirectUrl = `/redirect?redirectTo=${encodeURIComponent(currentUrl)}`;
-        // signOut({ callbackUrl: redirectUrl });
         signOut();
     };
     return (
-        <nav className="bg-gray-800 text-white py-4">
+        <nav className="bg-white text-black py-2">
             <div className="flex items-center justify-between max-w-screen-lg w-full mx-auto">
                 {/* Portfolio Optimizer Logo/Title */}
-                <div className="text-xl font-bold ml-0">
+                <div className="text-xl font-bold ml-0 flex items-center">
                     Portfolio Optimizer
                 </div>
 
                 {/* Navigation Buttons */}
-                <div className="flex space-x-6 mr-0">
+                <div className="flex items-center space-x-4 mr-0">
                     {/* Home Button */}
                     <Link
                         href="/"
-                        className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
+                        className="text-black font-bold px-3 py-2 hover:underline flex items-center"
                     >
                         Home
                     </Link>
@@ -43,7 +40,7 @@ export default function NavBar() {
                     {/* Portfolio Button */}
                     <Link
                         href="/portfolio"
-                        className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
+                        className="text-black font-bold px-3 py-2 hover:underline flex items-center"
                     >
                         Portfolio
                     </Link>
@@ -52,7 +49,7 @@ export default function NavBar() {
                     {session ? (
                         <button
                             type="button"
-                            className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-400"
+                            className="bg-black text-white border-white hover:bg-gray-800 px-4 py-3 rounded-full font-bold border-2 flex items-center"
                             onClick={handleLogOut}
                         >
                             Logout
@@ -60,7 +57,7 @@ export default function NavBar() {
                     ) : (
                         <button
                             type="button"
-                            className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-400"
+                            className="bg-white text-black border-black hover:bg-gray-200 px-4 py-3 rounded-full font-bold border-2 flex items-center"
                             onClick={handleSignIn}
                         >
                             Sign in

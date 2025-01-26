@@ -34,11 +34,15 @@ interface PortfolioVsMarket {
 
 interface HistoricalPerformanceProps {
     portfolioVsMarket: PortfolioVsMarket; // Prop containing data
-    handleTimeFrameChange: (timeframe: '5y' | '3y' | '1y' | '6m' | 'ytd') => void;
+    selectedTimeframe: '5y' | '3y' | '1y' | '6m' | 'ytd'; // Selected timeframe
+    handleTimeFrameChange: (
+        timeframe: '5y' | '3y' | '1y' | '6m' | 'ytd'
+    ) => void;
 }
 
 const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
     portfolioVsMarket,
+    selectedTimeframe,
     handleTimeFrameChange,
 }) => {
     const { days, portfolio, market } = portfolioVsMarket;
@@ -48,14 +52,19 @@ const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
         const step = Math.floor(data.length / limit);
         return {
             sampledData: data.filter((_, index) => index % step === 0),
-            sampledLabels: labels.filter((_, index) => index % step === 0)
+            sampledLabels: labels.filter((_, index) => index % step === 0),
         };
     };
 
     const samplingLimit = 100 > days.length ? days.length : 100;
 
-    const { sampledData: sampledPortfolio, sampledLabels: sampledDays } = sampleData(portfolio, days, samplingLimit);
-    const { sampledData: sampledMarket } = sampleData(market, days, samplingLimit);
+    const { sampledData: sampledPortfolio, sampledLabels: sampledDays } =
+        sampleData(portfolio, days, samplingLimit);
+    const { sampledData: sampledMarket } = sampleData(
+        market,
+        days,
+        samplingLimit
+    );
 
     const data = {
         labels: sampledDays,
@@ -68,7 +77,7 @@ const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
                 tension: 0.1, // Smooth line
             },
             {
-                label: 'Market Performance',
+                label: 'S&P 500',
                 data: sampledMarket,
                 borderColor: '#FF6384',
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
@@ -105,43 +114,33 @@ const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
     };
 
     return (
-        <div className="bg-white shadow p-4 rounded">
-            <h2 className="text-xl font-bold mb-4">
-                Historical Performance Vs Market
-            </h2>
-            <div>
-                    <button
-                        className="px-4 py-2 bg-blue-500 text-white rounded"
-                        onClick={() => handleTimeFrameChange('5y')}
-                    >
-                        5Y
-                    </button>
-                    <button
-                        className="px-4 py-2 bg-blue-500 text-white rounded ml-2"
-                        onClick={() => handleTimeFrameChange('3y')}
-                    >
-                        3Y
-                    </button>
-                    <button
-                        className="px-4 py-2 bg-blue-500 text-white rounded ml-2"
-                        onClick={() => handleTimeFrameChange('1y')}
-                    >
-                        1Y
-                    </button>
-                    <button
-                        className="px-4 py-2 bg-blue-500 text-white rounded ml-2"
-                        onClick={() => handleTimeFrameChange('6m')}
-                    >
-                        6M
-                    </button>
-                    <button
-                        className="px-4 py-2 bg-blue-500 text-white rounded ml-2"
-                        onClick={() => handleTimeFrameChange('ytd')}
-                    >
-                        YTD
-                    </button>
+        <div
+            className="p-2 bg-white rounded-2xl overflow-hidden"
+            style={{ height: '600px' }}
+        >
+            <div className="bg-white rounded-2xl overflow-hidden p-4">
+                <h1 className="text-xl font-bold mb-4">
+                    Historical Performance Vs S&P 500
+                </h1>
+                <div>
+                    {(['5y', '3y', '1y', '6m', 'ytd'] as const).map(
+                        (timeframe) => (
+                            <button
+                                key={timeframe}
+                                className={`px-4 py-2 border rounded-2xl ml-2 font-bold ${
+                                    timeframe === selectedTimeframe
+                                        ? 'bg-white text-black border-black hover:bg-gray-200'
+                                        : 'bg-black text-white border-white hover:bg-gray-800'
+                                }`}
+                                onClick={() => handleTimeFrameChange(timeframe)}
+                            >
+                                {timeframe.toUpperCase()}
+                            </button>
+                        )
+                    )}
                 </div>
-            <Line data={data} options={options} />
+                <Line data={data} options={options} />
+            </div>
         </div>
     );
 };

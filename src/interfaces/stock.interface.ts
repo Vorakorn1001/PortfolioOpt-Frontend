@@ -7,6 +7,9 @@ export default interface StockData {
     annual3YrsReturn: number;
     annual1YrReturn: number;
     ytdReturn: number;
+    volatility: number;
+    momentum: number;
+    beta: number;
     sector: string;
     industry: string;
     marketCap: number;

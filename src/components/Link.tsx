@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
 import { Layer } from 'recharts';
 
+const normalColor = '#e0e0e0';
+const hoverColor = 'rgba(0, 136, 254, 0.5)';
+
 export default class Link extends Component<any, any> {
     static displayName = 'SankeyLinkDemo';
-
     state = {
-        fill: 'lightgrey',
+        fill: normalColor,
     };
 
     render() {
@@ -37,12 +39,12 @@ export default class Link extends Component<any, any> {
                     strokeWidth="0"
                     onMouseEnter={() => {
                         this.setState({
-                            fill: 'rgba(0, 136, 254, 0.5)',
+                            fill: hoverColor,
                         });
                     }}
                     onMouseLeave={() => {
                         this.setState({
-                            fill: 'lightgrey',
+                            fill: normalColor,
                         });
                     }}
                 />
