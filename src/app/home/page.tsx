@@ -19,8 +19,6 @@ const Home: React.FC = () => {
     const [keyword, setKeyword] = useState<string>('');
     const [radarData, setRadarData] = useState<RadarData>(initialRadarData);
     const [assets, setAssets] = useState<StockData[]>([]);
-    const [portfolioData, setPortfolioData] =
-        useState<PortfolioData>(initialPortfolioData);
     const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
 
@@ -75,9 +73,7 @@ const Home: React.FC = () => {
             localStorage.getItem('portfolioData') || 'null'
         );
 
-        if (savedPortfolioData) {
-            setPortfolioData(savedPortfolioData);
-        } else {
+        if (!savedPortfolioData) {
             // Save default portfolio structure to localStorage
             localStorage.setItem(
                 'portfolioData',
@@ -129,24 +125,19 @@ const Home: React.FC = () => {
         const activePortfolioName = savedPortfolioData.activePortfolio;
         if (!activePortfolioName) return;
 
-        setPortfolioData((prevPortfolioData) => {
-            const updatedPortfolios = {
-                ...prevPortfolioData.portfolios,
-                [activePortfolioName]: {
-                    ...prevPortfolioData.portfolios[activePortfolioName],
-                    assets: updatedPortfolio,
-                },
-            };
-            const newPortfolioData = {
-                ...prevPortfolioData,
-                portfolios: updatedPortfolios,
-            };
-            localStorage.setItem(
-                'portfolioData',
-                JSON.stringify(newPortfolioData)
-            );
-            return newPortfolioData;
-        });
+        // Update local storage
+        const updatedPortfolioData = {
+            ...savedPortfolioData.portfolios,
+            [activePortfolioName]: {
+                ...savedPortfolioData.portfolios[activePortfolioName],
+                assets: updatedPortfolio,
+            },
+        };
+        const newPortfolioData = {
+            ...savedPortfolioData,
+            portfolios: updatedPortfolioData,
+        };
+        localStorage.setItem('portfolioData', JSON.stringify(newPortfolioData));
 
         // Send updated portfolio data to the backend
         if (status === 'authenticated') {

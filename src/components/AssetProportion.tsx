@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import {
+    Chart as ChartJS,
+    ArcElement,
+    Tooltip,
+    TooltipItem,
+    Legend,
+} from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
 // Register required components with Chart.js
@@ -53,12 +59,12 @@ const AssetProportion: React.FC<AssetProportionProps> = ({
         plugins: {
             tooltip: {
                 callbacks: {
-                    label: function (tooltipItem: any) {
+                    label: function (tooltipItem: TooltipItem<'doughnut'>) {
                         const total = data.reduce(
                             (acc, value) => acc + value,
                             0
                         );
-                        const currentValue = tooltipItem.raw;
+                        const currentValue = tooltipItem.raw as number;
                         const percentage = (
                             (currentValue / total) *
                             100

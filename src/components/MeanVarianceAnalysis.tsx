@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Scatter } from 'react-chartjs-2';
+import { Chart, ChartEvent, ActiveElement } from 'chart.js';
 
 interface PortfolioData {
     weight: number[];
@@ -33,19 +34,28 @@ const MeanVarianceAnalysis: React.FC<MeanVarianceAnalysisProps> = ({
                     'rgba(212, 66, 29, 0.4)',
                 ],
                 backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                pointRadius: 10,
+                pointRadius: 15,
+                hoverRadius: 13,
             },
         ],
     };
 
-    const handlePointClick = (event: any) => {
-        const chart = event.chart;
-        const elements = chart.getElementsAtEventForMode(
-            event,
-            'nearest',
-            { intersect: true },
-            false
-        );
+    const handlePointClick = (event: ChartEvent) => {
+        console.log(event);
+
+        const chart = event.native?.target as HTMLCanvasElement;
+        if (!chart) return;
+
+        const chartInstance = Chart.getChart(chart); // Get the Chart.js instance
+        if (!chartInstance) return;
+
+        const elements: ActiveElement[] =
+            chartInstance.getElementsAtEventForMode(
+                event as unknown as MouseEvent, // Cast to MouseEvent for compatibility
+                'nearest',
+                { intersect: true },
+                false
+            );
 
         if (elements.length > 0) {
             const index = elements[0].index;

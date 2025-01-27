@@ -1,6 +1,18 @@
 import React from 'react';
 import { Rectangle, Layer } from 'recharts';
 
+interface NodeProps {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    index: number;
+    payload: {
+        name: string;
+    };
+    containerWidth: number;
+}
+
 export default function Node({
     x,
     y,
@@ -9,7 +21,7 @@ export default function Node({
     index,
     payload,
     containerWidth,
-}: any) {
+}: NodeProps) {
     const isOut = x + width + 6 > containerWidth;
     return (
         <Layer key={`CustomNode${index}`}>

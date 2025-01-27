@@ -16,7 +16,9 @@ const InvestorsViewSection: React.FC<InvestorsViewSectionProps> = ({
         <section>
             <div className="p-2 bg-white rounded-2xl">
                 <div className="bg-white rounded-2xl overflow-hidden p-4">
-                    <h1 className="text-xl font-bold mb-4">Investor's View</h1>
+                    <h1 className="text-xl font-bold mb-4">
+                        Investor&apos;s View
+                    </h1>
                     <div className="my-6"></div>
                     <div className="flex justify-center">
                         <div className="w-full max-w-4xl">

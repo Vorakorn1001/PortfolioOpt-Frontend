@@ -1,15 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import StockData from '@/interfaces/stock.interface';
-import PortfolioData from '@/interfaces/portfolio.interface';
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import Portfolio from '@/app/optimize/page';
-import { redirect } from 'next/dist/server/api-utils';
 
 export default function NavBar() {
-    const { data: session, status } = useSession();
+    const { data: session } = useSession();
 
     const handleSignIn = () => {
         const currentUrl = window.location.href;

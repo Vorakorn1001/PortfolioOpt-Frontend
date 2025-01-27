@@ -56,7 +56,6 @@ const Optimize: React.FC = () => {
             try {
                 const optimizeUrlwithTimeFrame =
                     optimizeUrl + '?timeframe=' + selectedTimeFrame;
-                console.log(optimizeUrlwithTimeFrame);
                 const response = await axios.post(optimizeUrlwithTimeFrame, {
                     stocks: savedPortfolio.map(
                         (stock: StockData) => stock.symbol

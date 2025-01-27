@@ -4,9 +4,26 @@ import { Layer } from 'recharts';
 const normalColor = '#e0e0e0';
 const hoverColor = 'rgba(0, 136, 254, 0.5)';
 
-export default class Link extends Component<any, any> {
+// Define the expected props based on the Sankey component's link properties
+interface LinkProps {
+    sourceX: number;
+    targetX: number;
+    sourceY: number;
+    targetY: number;
+    sourceControlX: number;
+    targetControlX: number;
+    linkWidth: number;
+    index: number;
+}
+
+interface LinkState {
+    fill: string;
+}
+
+export default class Link extends Component<LinkProps, LinkState> {
     static displayName = 'SankeyLinkDemo';
-    state = {
+
+    state: LinkState = {
         fill: normalColor,
     };
 
@@ -21,6 +38,7 @@ export default class Link extends Component<any, any> {
             linkWidth,
             index,
         } = this.props;
+
         const { fill } = this.state;
 
         return (

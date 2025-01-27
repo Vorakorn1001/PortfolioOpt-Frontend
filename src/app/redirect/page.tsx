@@ -30,7 +30,7 @@ export default function RedirectPage() {
         if (hasRedirected.current) return; // Prevent executing the redirection logic twice
         hasRedirected.current = true; // Mark as executed
 
-        var savedPortfolioData = JSON.parse(
+        let savedPortfolioData = JSON.parse(
             localStorage.getItem('portfolioData') || 'null'
         );
 

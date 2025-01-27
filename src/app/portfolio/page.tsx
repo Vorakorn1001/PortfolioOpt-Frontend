@@ -25,8 +25,6 @@ interface portfolioAndInvestorViews {
 const Portfolio: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
-    const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
-    const [uploadError, setUploadError] = useState<string | null>(null);
     const [sliderValue, setSliderValue] = useState(7);
     const [selectedMetric, setSelectedMetric] = useState('return');
     const [showPopup, setShowPopup] = useState(false);
@@ -67,7 +65,7 @@ const Portfolio: React.FC = () => {
             savedPortfolioData.portfolios[activePortfolioName]?.investorViews ||
             [];
 
-        var portAndView = {
+        let portAndView = {
             assets: activePortfolio,
             investorViews: savedInvestorViews,
         };
@@ -277,7 +275,6 @@ const Portfolio: React.FC = () => {
 
     const handleUpload = async (file: File) => {
         if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-            setUploadError('Please upload a CSV file.');
             return;
         }
 
@@ -294,13 +291,9 @@ const Portfolio: React.FC = () => {
 
             if (response.status === 200) {
                 handlePortfolioChange(response.data.portfolio);
-                setUploadSuccess('File uploaded successfully!');
-                setUploadError(null);
-            } else {
-                setUploadError('Failed to upload file.');
             }
         } catch (error) {
-            setUploadError('Error uploading file.');
+            console.error('Error uploading IBKR file:', error);
         } finally {
             setUploading(false);
         }

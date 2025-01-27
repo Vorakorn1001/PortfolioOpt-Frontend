@@ -9,7 +9,12 @@ interface DiversificationProps {
     };
 }
 
-const CustomTooltip = ({ active }: any) => {
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: any; // You can refine this further based on the data shape
+}
+
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active }) => {
     if (active) {
         return null; // Return null to hide the tooltip entirely
     }
@@ -30,10 +35,16 @@ const Diversification: React.FC<DiversificationProps> = ({ data }) => {
                         nodePadding={60}
                         linkCurvature={0.61}
                         iterations={64}
-                        link={<Link />}
-                        node={<Node containerWidth={400} />}
+                        link={(props) => <Link {...props} />}
+                        node={(props) => (
+                            <Node {...props} containerWidth={400} />
+                        )}
                     >
-                        <Tooltip content={<CustomTooltip />} />
+                        <Tooltip
+                            content={({ active }) => (
+                                <CustomTooltip active={active} />
+                            )}
+                        />
                     </Sankey>
                 </div>
             </div>

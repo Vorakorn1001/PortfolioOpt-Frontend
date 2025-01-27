@@ -37,7 +37,9 @@ const AddViewPopup: React.FC<AddViewPopupProps> = ({
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Add Investor's View</h2>
+                <h2 className="text-xl font-bold mb-4">
+                    Add Investor&apos;s View
+                </h2>
                 <form className="space-y-4">
                     <div>
                         <label className="block mb-2">Asset 1</label>

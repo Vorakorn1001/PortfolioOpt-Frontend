@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Radar } from 'react-chartjs-2';
 import {
     Chart,
+    ChartEvent,
     RadialLinearScale,
     PointElement,
     LineElement,
@@ -84,10 +85,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     radarData,
     setRadarData,
 }) => {
-    // useEffect(() => {
-    //     console.log('Radar data updated:', radarData.datasets[0].data);
-    // }, [radarData]);
-
     const radarOptions = {
         scales: {
             r: {
@@ -109,15 +106,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                 display: false, // Hide the legend
             },
         },
-        animation: false as false, // Disable animations
-        onHover: (event: any, chartElement: any) => {
-            event.native.target.style.cursor = chartElement[0]
-                ? 'pointer'
-                : 'default';
-        },
+        animation: false as const, // Disable animations
     };
 
-    const chartRef = useRef<any>(null);
+    const chartRef = useRef<Chart<'radar'>>(null);
     const [dragging, setDragging] = useState<boolean>(false);
     const [draggedPointIndex, setDraggedPointIndex] = useState<number | null>(
         null
@@ -232,9 +224,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         const chart = chartRef.current;
         if (!chart) return;
 
-        const touchPosition = e.touches[0];
+        const nativeEvent = e.nativeEvent;
+
         const points = chart.getElementsAtEventForMode(
-            touchPosition,
+            nativeEvent, // Pass the native event
             'nearest',
             { intersect: true },
             false
@@ -244,7 +237,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
             const pointIndex = points[0].index;
             const newData = [...radarData.datasets[0].data];
             newData[pointIndex] = Math.max(
-                (newData[pointIndex] + 1) % maxPoints,
+                (newData[pointIndex] + 1) % (maxPoints + 1),
                 1
             );
 
