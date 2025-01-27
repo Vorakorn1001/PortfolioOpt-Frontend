@@ -65,11 +65,12 @@ const Portfolio: React.FC = () => {
             savedPortfolioData.portfolios[activePortfolioName]?.investorViews ||
             [];
 
-        let portAndView = {
+            
+        const portAndView = {
             assets: activePortfolio,
             investorViews: savedInvestorViews,
         };
-
+        
         if (hasConflictingViews(portAndView)) {
             portAndView.investorViews = getNonConflictingViews(portAndView);
             updatePortfolio(portAndView, activePortfolioName);
