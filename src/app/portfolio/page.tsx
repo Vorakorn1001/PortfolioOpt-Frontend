@@ -39,14 +39,11 @@ const Portfolio: React.FC = () => {
     const [portfolios, setPortfolios] = useState<string[]>([]);
     const [selectedPortfolio, setSelectedPortfolio] = useState<string>('');
 
-    const PortfolioUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/portfolio/';
-    const uploadIBKRUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/ibkr/';
-    const updatePortfolioUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updatePortfolio';
-    const deletePortfolioUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL + '/user/deletePortfolio';
-    const updateActivePortfolioUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateActivePortfolio';
+    const PortfolioUrl = '/api/backend/portfolio';
+    const uploadIBKRUrl = '/api/backend/ibkr';
+    const updatePortfolioUrl = '/api/backend/user/updatePortfolio';
+    const deletePortfolioUrl = '/api/backend/user/deletePortfolio';
+    const updateActivePortfolioUrl = '/api/backend/user/updateActivePortfolio';
 
     const { data: session, status } = useSession();
 

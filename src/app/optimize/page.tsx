@@ -27,10 +27,9 @@ const Optimize: React.FC = () => {
         '5y' | '3y' | '1y' | '6m' | 'ytd'
     >('5y');
 
-    const optimizeUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/optimize';
-    const changeUrl = process.env.NEXT_PUBLIC_BACKEND_URL + '/optimize/change';
-    const performanceUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL + '/optimize/performance';
+    const optimizeUrl = '/api/backend/optimize';
+    const changeUrl = '/api/backend/optimize/change';
+    const performanceUrl = '/api/backend/optimize/performance';
 
     useEffect(() => {
         const savedPortfolioData = JSON.parse(
