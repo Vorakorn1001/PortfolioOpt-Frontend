@@ -39,7 +39,7 @@ const Portfolio: React.FC = () => {
     const [portfolios, setPortfolios] = useState<string[]>([]);
     const [selectedPortfolio, setSelectedPortfolio] = useState<string>('');
 
-    const PortfolioUrl = '/api/backend/portfolio';
+    const PortfolioUrl = '/api/backend/portfolio/init';
     const uploadIBKRUrl = '/api/backend/ibkr';
     const updatePortfolioUrl = '/api/backend/user/updatePortfolio';
     const deletePortfolioUrl = '/api/backend/user/deletePortfolio';
