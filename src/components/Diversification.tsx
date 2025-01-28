@@ -11,7 +11,7 @@ interface DiversificationProps {
 
 interface CustomTooltipProps {
     active?: boolean;
-    payload?: any; // You can refine this further based on the data shape
+    // payload?: any;
 }
 
 const CustomTooltip: React.FC<CustomTooltipProps> = ({ active }) => {

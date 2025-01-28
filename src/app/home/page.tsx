@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, use } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import NavBar from '@/components/NavBar';
 import StockData from '@/interfaces/stock.interface';
-import PortfolioData from '@/interfaces/portfolio.interface';
 import AssetsSection from '@/components/AssetsSection';
 import FilterSection from '@/components/FilterSection';
 import RadarData from '@/interfaces/radar.interface';
@@ -201,16 +200,6 @@ const Home: React.FC = () => {
 };
 
 export default Home;
-
-const initialPortfolioData = {
-    activePortfolio: 'Portfolio',
-    portfolios: {
-        Portfolio: {
-            assets: [],
-            investorViews: [],
-        },
-    },
-};
 
 const initialRadarData = {
     labels: ['High Return', 'Low Volatile', 'Market Cap.', 'Beta', 'Momentum'],
