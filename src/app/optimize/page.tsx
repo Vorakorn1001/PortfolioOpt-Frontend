@@ -27,7 +27,7 @@ const Optimize: React.FC = () => {
         '5y' | '3y' | '1y' | '6m' | 'ytd'
     >('5y');
 
-    const optimizeUrl = '/api/backend/optimize';
+    const optimizeUrl = '/api/backend/optimize/init';
     const changeUrl = '/api/backend/optimize/change';
     const performanceUrl = '/api/backend/optimize/performance';
 
