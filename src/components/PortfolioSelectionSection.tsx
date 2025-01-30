@@ -89,7 +89,7 @@ const PortfolioSelectionSection: React.FC<PortfolioSelectionProps> = ({
                         height: '40px',
                     }}
                 >
-                    <b>Upload IBKR CSV File</b>
+                    <b>Upload IBKR CSV</b>
                 </button>
             </div>
         </div>

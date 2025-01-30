@@ -9,8 +9,8 @@ import AssetsSection from '@/components/AssetsSection';
 import FilterSection from '@/components/FilterSection';
 import RadarData from '@/interfaces/radar.interface';
 
-const updateAssetsUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL + '/user/updateAssets';
+const fetchDataUrl = '/api/backend/stock/';
+const updateAssetsUrl = '/api/backend/user/updateAssets';
 
 const Home: React.FC = () => {
     const [sectors, setsectorField] = useState<string[]>([]);
@@ -32,9 +32,8 @@ const Home: React.FC = () => {
             radarData: RadarData,
             skip: number = 0
         ) => {
-            const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL + `/stock/`;
             const apiUrl =
-                `${baseUrl}filter?skip=${skip}` +
+                `${fetchDataUrl}filter?skip=${skip}` +
                 (keyword ? `&keyword=${keyword}` : '');
             try {
                 if (!apiUrl) throw new Error('API URL is not defined');
@@ -140,7 +139,6 @@ const Home: React.FC = () => {
 
         // Send updated portfolio data to the backend
         if (status === 'authenticated') {
-            console.log('Sending updated portfolio data to the backend...');
             // Send UserData, ActivePortfolio, and PortfolioData of that Portfolio
             const userData = {
                 name: session.user?.name,
@@ -152,7 +150,6 @@ const Home: React.FC = () => {
                 user: userData,
                 portfolio: updatedPortfolio,
             };
-            console.log('Payload:', payload);
             await axios.post(updateAssetsUrl, payload);
         }
     };
