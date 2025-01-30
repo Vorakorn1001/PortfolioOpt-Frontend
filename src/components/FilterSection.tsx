@@ -522,6 +522,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                             elements: {
                                 point: {
                                     radius: 15,
+                                    hoverRadius: 13
                                 },
                             },
                         }}
