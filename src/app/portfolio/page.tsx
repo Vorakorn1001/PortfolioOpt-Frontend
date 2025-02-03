@@ -445,8 +445,6 @@ const Portfolio: React.FC = () => {
                                       ]
                                     : [
                                           'price',
-                                          'priorReturn',
-                                          'posteriorReturn',
                                           'industry',
                                       ]
                             }
