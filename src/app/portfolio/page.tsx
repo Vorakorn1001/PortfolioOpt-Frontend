@@ -23,7 +23,6 @@ interface portfolioAndInvestorViews {
     investorViews: InvestorView[];
 }
 
-
 const Portfolio: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
@@ -401,7 +400,10 @@ const Portfolio: React.FC = () => {
     };
 
     return (
-        <div className="bg-gray-100 min-h-screen w-full text-black" suppressHydrationWarning>
+        <div
+            className="bg-gray-100 min-h-screen w-full text-black"
+            suppressHydrationWarning
+        >
             <NavBar />
             <div className="px-4 sm:px-0">
                 <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen">
@@ -427,23 +429,27 @@ const Portfolio: React.FC = () => {
 
                         <AssetsSection
                             portfolio={showPortfolio}
-                            excludeFields={isMobile ? [
-                                'price', 
-                                'sector', 
-                                'industry',   
-                                'name', 
-                                'ytdReturn', 
-                                'annual3YrsReturn', 
-                                'volatility', 
-                                'momentum', 
-                                'beta', 
-                                'annualReturn'
-                              ] : [
-                                'price',
-                                'priorReturn',
-                                'posteriorReturn',
-                                'industry'
-                              ]}
+                            excludeFields={
+                                isMobile
+                                    ? [
+                                          'price',
+                                          'sector',
+                                          'industry',
+                                          'name',
+                                          'ytdReturn',
+                                          'annual3YrsReturn',
+                                          'volatility',
+                                          'momentum',
+                                          'beta',
+                                          'annualReturn',
+                                      ]
+                                    : [
+                                          'price',
+                                          'priorReturn',
+                                          'posteriorReturn',
+                                          'industry',
+                                      ]
+                            }
                             handlePortfolioChange={handlePortfolioChange}
                         />
 

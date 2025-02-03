@@ -68,8 +68,8 @@ const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics }) => {
                                     numericValue > 0
                                         ? 'text-green-500'
                                         : numericValue < 0
-                                            ? 'text-red-500'
-                                            : 'text-black';
+                                          ? 'text-red-500'
+                                          : 'text-black';
                             }
                         }
 

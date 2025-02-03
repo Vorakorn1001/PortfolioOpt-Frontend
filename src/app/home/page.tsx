@@ -24,13 +24,35 @@ const Home: React.FC = () => {
     const { data: session, status } = useSession();
 
     const isMobile = useMediaQuery('(max-width: 767px)');
-    const [excludeFields, setExcludeFields] = useState<string[]>(['price', 'priorReturn', 'posteriorReturn', 'industry']);
+    const [excludeFields, setExcludeFields] = useState<string[]>([
+        'price',
+        'priorReturn',
+        'posteriorReturn',
+        'industry',
+    ]);
 
     useEffect(() => {
         if (isMobile) {
-            setExcludeFields(['price', 'industry', 'priorReturn', 'posteriorReturn', 'name', 'ytdReturn', 'annual3YrsReturn', 'volatility', 'momentum', 'beta', 'annualReturn']);
+            setExcludeFields([
+                'price',
+                'industry',
+                'priorReturn',
+                'posteriorReturn',
+                'name',
+                'ytdReturn',
+                'annual3YrsReturn',
+                'volatility',
+                'momentum',
+                'beta',
+                'annualReturn',
+            ]);
         } else {
-            setExcludeFields(['price', 'priorReturn', 'posteriorReturn', 'industry']);
+            setExcludeFields([
+                'price',
+                'priorReturn',
+                'posteriorReturn',
+                'industry',
+            ]);
         }
     }, [isMobile]);
 

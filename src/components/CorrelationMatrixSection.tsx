@@ -66,7 +66,10 @@ const CorrelationMatrixSection: React.FC<CorrelationMatrixSectionProps> = ({
                                         <tr className="bg-white">
                                             <th className="px-4 py-2 border-none"></th>
                                             {stocksOrder.map(
-                                                (symbol: string, index: number) => (
+                                                (
+                                                    symbol: string,
+                                                    index: number
+                                                ) => (
                                                     <th
                                                         key={index}
                                                         className="px-4 py-2 border-none"
@@ -79,23 +82,34 @@ const CorrelationMatrixSection: React.FC<CorrelationMatrixSectionProps> = ({
                                     </thead>
                                     <tbody>
                                         {correlationMatrix.map(
-                                            (row: number[], rowIndex: number) => (
+                                            (
+                                                row: number[],
+                                                rowIndex: number
+                                            ) => (
                                                 <tr key={rowIndex}>
                                                     <td className="px-4 py-2 font-bold">
                                                         {stocksOrder[rowIndex]}
                                                     </td>
                                                     {row.map(
-                                                        (value: number, colIndex: number) => (
+                                                        (
+                                                            value: number,
+                                                            colIndex: number
+                                                        ) => (
                                                             <td
                                                                 key={colIndex}
                                                                 className="px-4 py-2"
                                                                 style={{
-                                                                    backgroundColor: getColor(value),
+                                                                    backgroundColor:
+                                                                        getColor(
+                                                                            value
+                                                                        ),
                                                                     color: 'black',
                                                                 }}
                                                             >
                                                                 <strong>
-                                                                    {value.toFixed(2)}
+                                                                    {value.toFixed(
+                                                                        2
+                                                                    )}
                                                                 </strong>
                                                             </td>
                                                         )

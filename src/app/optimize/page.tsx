@@ -131,78 +131,80 @@ const Optimize: React.FC = () => {
     }
 
     return (
+        <div
+            className="bg-gray-100 min-h-screen w-full text-black"
+            suppressHydrationWarning
+        >
+            <NavBar />
+            <div className="px-4 sm:px-0">
+                <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen">
+                    <div className="py-2" />
 
-        
-<div className="bg-gray-100 min-h-screen w-full text-black" suppressHydrationWarning>
-  <NavBar />
-  <div className="px-4 sm:px-0">
-    <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen">
-      <div className="py-2" />
-      
-      {/* 
+                    {/* 
         Use a grid with 2 columns on desktop, 1 column on mobile. 
         We’ll control the vertical ordering with Tailwind’s order classes.
       */}
-      <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
-        {/* 
+                    <div
+                        className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}
+                    >
+                        {/* 
           AssetProportion:
           - Mobile: order-1
           - Desktop: order-1
         */}
-        <div className="order-1 md:order-1 md:col-span-1">
-          <AssetProportion
-            Labels={stocksOrder}
-            Values={porfolioWeights}
-          />
-        </div>
+                        <div className="order-1 md:order-1 md:col-span-1">
+                            <AssetProportion
+                                Labels={stocksOrder}
+                                Values={porfolioWeights}
+                            />
+                        </div>
 
-        {/* 
+                        {/* 
           Diversification:
           - Mobile: order-3
           - Desktop: order-2
         */}
-        <div className="order-3 md:order-2 md:col-span-1">
-          <Diversification data={diversificationData} />
-        </div>
+                        <div className="order-3 md:order-2 md:col-span-1">
+                            <Diversification data={diversificationData} />
+                        </div>
 
-        {/* 
+                        {/* 
           Mean-Variance Analysis:
           - Mobile: order-2
           - Desktop: order-3 and spans both columns
         */}
-        <div className="order-2 md:order-3 md:col-span-2">
-          <MeanVarianceAnalysis
-            data={MeanVarianceAnalysisData}
-            setWeight={handleWeightChange}
-          />
-        </div>
+                        <div className="order-2 md:order-3 md:col-span-2">
+                            <MeanVarianceAnalysis
+                                data={MeanVarianceAnalysisData}
+                                setWeight={handleWeightChange}
+                            />
+                        </div>
 
-        {/* 
+                        {/* 
           Key Metrics:
           - Mobile: order-4
           - Desktop: order-4 and spans both columns
         */}
-        <div className="order-4 md:order-4 md:col-span-2">
-          <KeyMetrics metrics={portfolioMetrics} />
-        </div>
+                        <div className="order-4 md:order-4 md:col-span-2">
+                            <KeyMetrics metrics={portfolioMetrics} />
+                        </div>
 
-        {/* 
+                        {/* 
           Historical Performance:
           - Mobile: order-5
           - Desktop: order-5 and spans both columns
         */}
-<div className="order-5 md:order-5 md:col-span-2">
-  <HistoricalPerformance
-    portfolioVsMarket={portfolioVsMarketData}
-    selectedTimeframe={selectedTimeFrame}
-    handleTimeFrameChange={handleTimeFrameChange}
-  />
-</div>
-      </div>
-    </div>
-  </div>
-</div>
-
+                        <div className="order-5 md:order-5 md:col-span-2">
+                            <HistoricalPerformance
+                                portfolioVsMarket={portfolioVsMarketData}
+                                selectedTimeframe={selectedTimeFrame}
+                                handleTimeFrameChange={handleTimeFrameChange}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

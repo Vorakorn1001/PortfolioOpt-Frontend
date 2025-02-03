@@ -452,7 +452,8 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                     >
                         Keyword Search
                     </label>
-                    <input suppressHydrationWarning
+                    <input
+                        suppressHydrationWarning
                         id="keyword"
                         type="text"
                         value={keyword}
