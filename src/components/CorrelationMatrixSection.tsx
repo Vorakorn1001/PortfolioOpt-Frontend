@@ -13,9 +13,8 @@ const CorrelationMatrixSection: React.FC<CorrelationMatrixSectionProps> = ({
     const isDataAvailable =
         correlationMatrix.length > 0 && stocksOrder.length > 0;
 
-    const lowestColor = '#ffffff';
-    // const highestColor = '#f0f0f0';
-    const highestColor = '#d3d3d3';
+    const lowestColor = '#ffffff'; // White for lowest correlations
+    const highestColor = '#d3d3d3'; // Light grey for highest correlations
 
     const hexToRgb = (hex: string) => {
         const bigint = parseInt(hex.slice(1), 16);
@@ -33,8 +32,13 @@ const CorrelationMatrixSection: React.FC<CorrelationMatrixSectionProps> = ({
         return `#${hex(r)}${hex(g)}${hex(b)}`;
     };
 
+    // Updated getColor: maps values from 0.80 (lowestColor) to 1.00 (highestColor)
     const getColor = (value: number) => {
-        const ratio = (value + 1) / 2; // Normalize value to range [0, 1]
+        const minValue = 0.8;
+        const maxValue = 1.0;
+        // Clamp the value to ensure it stays within the expected range
+        const clampedValue = Math.max(minValue, Math.min(value, maxValue));
+        const ratio = (clampedValue - minValue) / (maxValue - minValue);
         const [r1, g1, b1] = hexToRgb(lowestColor);
         const [r2, g2, b2] = hexToRgb(highestColor);
 
@@ -62,10 +66,7 @@ const CorrelationMatrixSection: React.FC<CorrelationMatrixSectionProps> = ({
                                         <tr className="bg-white">
                                             <th className="px-4 py-2 border-none"></th>
                                             {stocksOrder.map(
-                                                (
-                                                    symbol: string,
-                                                    index: number
-                                                ) => (
+                                                (symbol: string, index: number) => (
                                                     <th
                                                         key={index}
                                                         className="px-4 py-2 border-none"
@@ -78,34 +79,23 @@ const CorrelationMatrixSection: React.FC<CorrelationMatrixSectionProps> = ({
                                     </thead>
                                     <tbody>
                                         {correlationMatrix.map(
-                                            (
-                                                row: number[],
-                                                rowIndex: number
-                                            ) => (
+                                            (row: number[], rowIndex: number) => (
                                                 <tr key={rowIndex}>
                                                     <td className="px-4 py-2 font-bold">
                                                         {stocksOrder[rowIndex]}
                                                     </td>
                                                     {row.map(
-                                                        (
-                                                            value: number,
-                                                            colIndex: number
-                                                        ) => (
+                                                        (value: number, colIndex: number) => (
                                                             <td
                                                                 key={colIndex}
                                                                 className="px-4 py-2"
                                                                 style={{
-                                                                    backgroundColor:
-                                                                        getColor(
-                                                                            value
-                                                                        ),
+                                                                    backgroundColor: getColor(value),
                                                                     color: 'black',
                                                                 }}
                                                             >
                                                                 <strong>
-                                                                    {value.toFixed(
-                                                                        2
-                                                                    )}
+                                                                    {value.toFixed(2)}
                                                                 </strong>
                                                             </td>
                                                         )

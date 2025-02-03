@@ -3,6 +3,8 @@
 import StockData from '@/interfaces/stock.interface';
 import OptimizeSkeleton from '@/components/OptimizeSkeleton';
 import React, { useEffect, useState } from 'react';
+import { useMediaQuery } from '@/utils/helper';
+
 import axios from 'axios';
 import AssetProportion from '@/components/AssetProportion';
 import HistoricalPerformance from '@/components/HistoricalPerformance';
@@ -26,6 +28,8 @@ const Optimize: React.FC = () => {
     const [selectedTimeFrame, setSelectedTimeFrame] = useState<
         '5y' | '3y' | '1y' | '6m' | 'ytd'
     >('5y');
+
+    const isMobile = useMediaQuery('(max-width: 767px)');
 
     const optimizeUrl = '/api/backend/optimize/init';
     const changeUrl = '/api/backend/optimize/change';
@@ -53,9 +57,9 @@ const Optimize: React.FC = () => {
         const fetchOptimizePage = async () => {
             if (!optimizeUrl) throw new Error('API URL is not defined');
             try {
-                const optimizeUrlwithTimeFrame =
+                const optimizeUrlWithTimeFrame =
                     optimizeUrl + '?timeframe=' + selectedTimeFrame;
-                const response = await axios.post(optimizeUrlwithTimeFrame, {
+                const response = await axios.post(optimizeUrlWithTimeFrame, {
                     stocks: savedPortfolio.map(
                         (stock: StockData) => stock.symbol
                     ),
@@ -127,44 +131,84 @@ const Optimize: React.FC = () => {
     }
 
     return (
-        <div className="bg-gray-100 min-h-screen w-full text-black">
-            <NavBar />
-            <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen">
-                <div className="py-2" />
-                <div className="grid grid-cols-2 gap-2">
-                    <AssetProportion
-                        Labels={stocksOrder}
-                        Values={porfolioWeights}
-                    />
-                    <Diversification data={diversificationData} />
-                </div>
 
-                <div className="py-1" />
-
-                <MeanVarianceAnalysis
-                    data={MeanVarianceAnalysisData}
-                    setWeight={handleWeightChange}
-                />
-
-                <div className="py-1" />
-
-                <KeyMetrics metrics={portfolioMetrics} />
-
-                <div className="py-1" />
-
-                <HistoricalPerformance
-                    portfolioVsMarket={portfolioVsMarketData}
-                    selectedTimeframe={selectedTimeFrame}
-                    handleTimeFrameChange={handleTimeFrameChange}
-                />
-                <div className="py-10" />
-            </div>
+        
+<div className="bg-gray-100 min-h-screen w-full text-black" suppressHydrationWarning>
+  <NavBar />
+  <div className="px-4 sm:px-0">
+    <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen">
+      <div className="py-2" />
+      
+      {/* 
+        Use a grid with 2 columns on desktop, 1 column on mobile. 
+        We’ll control the vertical ordering with Tailwind’s order classes.
+      */}
+      <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        {/* 
+          AssetProportion:
+          - Mobile: order-1
+          - Desktop: order-1
+        */}
+        <div className="order-1 md:order-1 md:col-span-1">
+          <AssetProportion
+            Labels={stocksOrder}
+            Values={porfolioWeights}
+          />
         </div>
+
+        {/* 
+          Diversification:
+          - Mobile: order-3
+          - Desktop: order-2
+        */}
+        <div className="order-3 md:order-2 md:col-span-1">
+          <Diversification data={diversificationData} />
+        </div>
+
+        {/* 
+          Mean-Variance Analysis:
+          - Mobile: order-2
+          - Desktop: order-3 and spans both columns
+        */}
+        <div className="order-2 md:order-3 md:col-span-2">
+          <MeanVarianceAnalysis
+            data={MeanVarianceAnalysisData}
+            setWeight={handleWeightChange}
+          />
+        </div>
+
+        {/* 
+          Key Metrics:
+          - Mobile: order-4
+          - Desktop: order-4 and spans both columns
+        */}
+        <div className="order-4 md:order-4 md:col-span-2">
+          <KeyMetrics metrics={portfolioMetrics} />
+        </div>
+
+        {/* 
+          Historical Performance:
+          - Mobile: order-5
+          - Desktop: order-5 and spans both columns
+        */}
+<div className="order-5 md:order-5 md:col-span-2">
+  <HistoricalPerformance
+    portfolioVsMarket={portfolioVsMarketData}
+    selectedTimeframe={selectedTimeFrame}
+    handleTimeFrameChange={handleTimeFrameChange}
+  />
+</div>
+      </div>
+    </div>
+  </div>
+</div>
+
     );
 };
 
 export default Optimize;
 
+// Dummy data below
 const data = {
     nodes: [{ name: 'Portfolio 100%' }, { name: 'Place Holder-1' }],
     links: [{ source: 0, target: 1, value: 1 }],

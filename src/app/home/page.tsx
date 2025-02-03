@@ -8,6 +8,7 @@ import StockData from '@/interfaces/stock.interface';
 import AssetsSection from '@/components/AssetsSection';
 import FilterSection from '@/components/FilterSection';
 import RadarData from '@/interfaces/radar.interface';
+import { useMediaQuery } from '@/utils/helper';
 
 const fetchDataUrl = '/api/backend/stock/';
 const updateAssetsUrl = '/api/backend/user/updateAssets';
@@ -20,8 +21,18 @@ const Home: React.FC = () => {
     const [assets, setAssets] = useState<StockData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-
     const { data: session, status } = useSession();
+
+    const isMobile = useMediaQuery('(max-width: 767px)');
+    const [excludeFields, setExcludeFields] = useState<string[]>(['price', 'priorReturn', 'posteriorReturn', 'industry']);
+
+    useEffect(() => {
+        if (isMobile) {
+            setExcludeFields(['price', 'industry', 'priorReturn', 'posteriorReturn', 'name', 'ytdReturn', 'annual3YrsReturn', 'volatility', 'momentum', 'beta', 'annualReturn']);
+        } else {
+            setExcludeFields(['price', 'priorReturn', 'posteriorReturn', 'industry']);
+        }
+    }, [isMobile]);
 
     // Fetch data from the backend
     const fetchData = useCallback(
@@ -163,34 +174,33 @@ const Home: React.FC = () => {
     return (
         <div className="bg-gray-100 min-h-screen w-full text-black">
             <NavBar />
-            <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen py-4">
-                <FilterSection
-                    industrialField={sectors}
-                    setIndustrialField={setsectorField}
-                    marketCap={marketCaps}
-                    setMarketCap={setMarketCap}
-                    keyword={keyword}
-                    setKeyword={setKeyword}
-                    radarData={radarData}
-                    setRadarData={setRadarData}
-                />
-                <div className="my-2"></div>
-                <AssetsSection
-                    portfolio={assets}
-                    excludeFields={[
-                        'price',
-                        'priorReturn',
-                        'posteriorReturn',
-                        'industry',
-                    ]}
-                    handlePortfolioChange={handlePortfolioChange}
-                />
-                {isLoading && (
-                    <p className="text-center mt-4">Loading more data...</p>
-                )}
-                {!hasMore && (
-                    <p className="text-center mt-4">No more data to load.</p>
-                )}
+            <div className="px-4 sm:px-0">
+                <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen py-4">
+                    <FilterSection
+                        industrialField={sectors}
+                        setIndustrialField={setsectorField}
+                        marketCap={marketCaps}
+                        setMarketCap={setMarketCap}
+                        keyword={keyword}
+                        setKeyword={setKeyword}
+                        radarData={radarData}
+                        setRadarData={setRadarData}
+                    />
+                    <div className="my-2"></div>
+                    <AssetsSection
+                        portfolio={assets}
+                        excludeFields={excludeFields}
+                        handlePortfolioChange={handlePortfolioChange}
+                    />
+                    {isLoading && (
+                        <p className="text-center mt-4">Loading more data...</p>
+                    )}
+                    {!hasMore && (
+                        <p className="text-center mt-4">
+                            No more data to load.
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     );

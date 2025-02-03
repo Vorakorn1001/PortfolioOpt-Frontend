@@ -67,7 +67,7 @@ const ConstraintSection: React.FC<ConstraintSectionProps> = ({
                                 </label>
                             </div>
                             <div className="flex-1 text-center w-full">
-                                <input
+                                <input suppressHydrationWarning
                                     type="range"
                                     min={min}
                                     max={max}

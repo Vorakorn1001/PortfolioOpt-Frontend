@@ -13,6 +13,7 @@ import {
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { Line } from 'react-chartjs-2';
+import { useMediaQuery } from '@/utils/helper';
 
 // Register required components with Chart.js
 Chart.register(
@@ -35,9 +36,7 @@ interface PortfolioVsMarket {
 interface HistoricalPerformanceProps {
     portfolioVsMarket: PortfolioVsMarket; // Prop containing data
     selectedTimeframe: '5y' | '3y' | '1y' | '6m' | 'ytd'; // Selected timeframe
-    handleTimeFrameChange: (
-        timeframe: '5y' | '3y' | '1y' | '6m' | 'ytd'
-    ) => void;
+    handleTimeFrameChange: (timeframe: '5y' | '3y' | '1y' | '6m' | 'ytd') => void;
 }
 
 const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
@@ -45,6 +44,8 @@ const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
     selectedTimeframe,
     handleTimeFrameChange,
 }) => {
+    const isMobile = useMediaQuery('(max-width: 767px)');
+
     const { days, portfolio, market } = portfolioVsMarket;
 
     // Sampling function to limit the number of data points
@@ -56,7 +57,8 @@ const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
         };
     };
 
-    const samplingLimit = 100 > days.length ? days.length : 100;
+    const maxsamplingLimit = isMobile ? 50 : 100;
+    const samplingLimit = maxsamplingLimit > days.length ? days.length : maxsamplingLimit;
 
     const { sampledData: sampledPortfolio, sampledLabels: sampledDays } =
         sampleData(portfolio, days, samplingLimit);
@@ -66,7 +68,7 @@ const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
         samplingLimit
     );
 
-    const data = {
+    const chartData = {
         labels: sampledDays,
         datasets: [
             {
@@ -88,6 +90,7 @@ const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
 
     const options: ChartOptions<'line'> = {
         responsive: true,
+        maintainAspectRatio: false, // allow chart to resize to container height
         plugins: {
             legend: { position: 'top' },
             tooltip: { enabled: true },
@@ -113,35 +116,45 @@ const HistoricalPerformance: React.FC<HistoricalPerformanceProps> = ({
         },
     };
 
+    // Decide chart container height based on mobile or desktop
+    const chartHeight = isMobile ? '300px' : '600px';
+
     return (
-        <div
-            className="p-2 bg-white rounded-2xl overflow-hidden"
-            style={{ height: '600px' }}
+<div className="p-2 bg-white rounded-2xl">
+  <div className="bg-white rounded-2xl p-4">
+    <h1 className="text-xl font-bold mb-4">
+      Historical Performance Vs S&P 500
+    </h1>
+
+    <div>
+      {(['5y', '3y', '1y', '6m', 'ytd'] as const).map((timeframe) => (
+        <button
+          key={timeframe}
+          className={`px-4 py-2 border rounded-2xl ml-2 font-bold ${
+            timeframe === selectedTimeframe
+              ? 'bg-white text-black border-black hover:bg-gray-200'
+              : 'bg-black text-white border-white hover:bg-gray-800'
+          }`}
+          onClick={() => handleTimeFrameChange(timeframe)}
         >
-            <div className="bg-white rounded-2xl overflow-hidden p-4">
-                <h1 className="text-xl font-bold mb-4">
-                    Historical Performance Vs S&P 500
-                </h1>
-                <div>
-                    {(['5y', '3y', '1y', '6m', 'ytd'] as const).map(
-                        (timeframe) => (
-                            <button
-                                key={timeframe}
-                                className={`px-4 py-2 border rounded-2xl ml-2 font-bold ${
-                                    timeframe === selectedTimeframe
-                                        ? 'bg-white text-black border-black hover:bg-gray-200'
-                                        : 'bg-black text-white border-white hover:bg-gray-800'
-                                }`}
-                                onClick={() => handleTimeFrameChange(timeframe)}
-                            >
-                                {timeframe.toUpperCase()}
-                            </button>
-                        )
-                    )}
-                </div>
-                <Line data={data} options={options} />
-            </div>
-        </div>
+          {timeframe.toUpperCase()}
+        </button>
+      ))}
+    </div>
+
+    {/* Set a fixed or min height so the chart is bigger by default */}
+    <div className="w-full h-96">
+      <Line
+        data={chartData}
+        options={{
+          ...options,
+          responsive: true,
+          maintainAspectRatio: false, // allows the chart to fill the container height
+        }}
+      />
+    </div>
+  </div>
+</div>
     );
 };
 

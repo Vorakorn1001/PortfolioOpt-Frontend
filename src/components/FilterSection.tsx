@@ -255,7 +255,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [marketCapDropdownOpen, setMarketCapDropdownOpen] = useState(false);
 
-    const radarSizeScale = 80; // Adjust the radar chart size (Percentage of the container width)
+    const radarSizeScale = 85; // Adjust the radar chart size (Percentage of the container width)
 
     const toggleDropdown = () => {
         setDropdownOpen(!dropdownOpen);
@@ -272,7 +272,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     };
 
     return (
-        <div className="p-2 bg-white rounded-2xl flex">
+        <div className="p-2 bg-white rounded-2xl flex flex-col sm:flex-row">
             <div
                 className="bg-white rounded-2xl overflow-hidden p-4 flex-1"
                 style={{ marginRight: '10px' }}
@@ -452,7 +452,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                     >
                         Keyword Search
                     </label>
-                    <input
+                    <input suppressHydrationWarning
                         id="keyword"
                         type="text"
                         value={keyword}
@@ -470,16 +470,71 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                         }}
                     />
                 </div>
+            </div>
+
+            {/* Radar Chart Section */}
+            <div
+                style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    position: 'relative',
+                    width: '100%', // Ensure it takes full width
+                    height: '100%', // Expand to available height
+                }}
+            >
+                <div
+                    style={{
+                        width: `${radarSizeScale}%`, // Use radarSizeScale for width
+                        maxWidth: '600px', // Increase max width
+                        height: '400px', // Set a larger fixed height
+                    }}
+                >
+                    <Radar
+                        ref={chartRef}
+                        data={radarData}
+                        options={{
+                            ...radarOptions,
+                            maintainAspectRatio: false, // Allow resizing
+                            responsive: true,
+                            elements: {
+                                point: {
+                                    radius: 15,
+                                    hoverRadius: 13,
+                                },
+                            },
+                        }}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onTouchStart={handleTouchStart}
+                    />
+                </div>
+                <div style={{ height: '20px' }}></div>
                 <button
                     onClick={() => {
                         if (
                             industrialField.length > 0 ||
                             marketCap.length > 0 ||
-                            keyword !== ''
+                            keyword !== '' ||
+                            radarData.datasets[0].data.some(
+                                (value) => value !== 3
+                            )
                         ) {
                             setIndustrialField([]);
                             setMarketCap([]);
                             setKeyword('');
+                            setRadarData({
+                                ...radarData,
+                                datasets: [
+                                    {
+                                        ...radarData.datasets[0],
+                                        data: [3, 3, 3, 3, 3],
+                                    },
+                                ],
+                            });
                         }
                     }}
                     className={
@@ -491,47 +546,13 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                         marginTop: '10px',
                         border: 'none',
                         cursor: 'pointer',
-                        marginLeft: '25px',
+                        position: 'absolute',
+                        bottom: '10px',
+                        right: '10px',
                     }}
                 >
                     Reset Filters
                 </button>
-            </div>
-
-            {/* Radar Chart Section */}
-            <div
-                style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}
-            >
-                <div
-                    style={{
-                        width: `${radarSizeScale}%`,
-                        maxWidth: '600px',
-                    }}
-                >
-                    <Radar
-                        ref={chartRef}
-                        data={radarData}
-                        options={{
-                            ...radarOptions,
-                            elements: {
-                                point: {
-                                    radius: 15,
-                                    hoverRadius: 13
-                                },
-                            },
-                        }}
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                        onTouchStart={handleTouchStart}
-                    />
-                </div>
             </div>
         </div>
     );

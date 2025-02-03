@@ -17,14 +17,15 @@ export default function NavBar() {
     };
     return (
         <nav className="bg-white text-black py-2">
-            <div className="flex items-center justify-between max-w-screen-lg w-full mx-auto">
+            {/* Add padding on mobile, remove it on larger screens */}
+            <div className="flex items-center justify-between max-w-screen-lg w-full mx-auto px-4 sm:px-0">
                 {/* Portfolio Optimizer Logo/Title */}
-                <div className="text-xl font-bold ml-0 flex items-center">
+                <div className="text-xl font-bold flex items-center">
                     Portfolio Optimizer
                 </div>
 
                 {/* Navigation Buttons */}
-                <div className="flex items-center space-x-4 mr-0">
+                <div className="flex items-center space-x-4">
                     {/* Home Button */}
                     <Link
                         href="/"
@@ -53,7 +54,7 @@ export default function NavBar() {
                     ) : (
                         <button
                             type="button"
-                            className="bg-white text-black border-black hover:bg-gray-200 px-4 py-3 rounded-full font-bold border-2 flex items-center"
+                            className="bg-white text-black border-black hover:bg-gray-200 px-4 py-3 rounded-full font-bold border-2 flex items-center whitespace-nowrap"
                             onClick={handleSignIn}
                         >
                             Sign in

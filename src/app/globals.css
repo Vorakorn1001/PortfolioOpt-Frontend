@@ -14,7 +14,15 @@
     }
 }
 
-html,
+html {
+    font-size: 16px; /* Default for desktop */
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 12px; /* Smaller font size for mobile */
+    }
+}
 body {
     background-color: var(--background);
     color: var(--foreground);

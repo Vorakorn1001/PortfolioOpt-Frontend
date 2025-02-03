@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import React, { useRef, useEffect, useState } from 'react';
+import { useMediaQuery } from '@/utils/helper';
 import { useSession } from 'next-auth/react';
 
 import StockData from '@/interfaces/stock.interface';
@@ -21,6 +22,7 @@ interface portfolioAndInvestorViews {
     assets: StockData[];
     investorViews: InvestorView[];
 }
+
 
 const Portfolio: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,6 +49,8 @@ const Portfolio: React.FC = () => {
 
     const { data: session, status } = useSession();
 
+    const isMobile = useMediaQuery('(max-width: 767px)');
+
     useEffect(() => {
         const savedPortfolioData = JSON.parse(
             localStorage.getItem('portfolioData') || 'null'
@@ -62,12 +66,11 @@ const Portfolio: React.FC = () => {
             savedPortfolioData.portfolios[activePortfolioName]?.investorViews ||
             [];
 
-            
         const portAndView = {
             assets: activePortfolio,
             investorViews: savedInvestorViews,
         };
-        
+
         if (hasConflictingViews(portAndView)) {
             portAndView.investorViews = getNonConflictingViews(portAndView);
             updatePortfolio(portAndView, activePortfolioName);
@@ -398,88 +401,106 @@ const Portfolio: React.FC = () => {
     };
 
     return (
-        <div className="bg-gray-100 min-h-screen w-full text-black">
+        <div className="bg-gray-100 min-h-screen w-full text-black" suppressHydrationWarning>
             <NavBar />
-            <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen">
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    style={{ display: 'none' }}
-                    onChange={handleFileChange}
-                />
-
-                <div>
-                    <PortfolioSelectionSection
-                        portfolios={portfolios}
-                        selectedPortfolio={selectedPortfolio}
-                        handlePortfolioSelect={handlePortfolioSelect}
-                        handleCreatePortfolio={handleCreatePortfolio}
-                        handleDeletePortfolio={handleDeletePortfolio}
-                        handleButtonClick={handleButtonClick}
-                        uploading={uploading}
+            <div className="px-4 sm:px-0">
+                <div className="w-full max-w-screen-lg mx-auto bg-transparent min-h-screen">
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        style={{ display: 'none' }}
+                        onChange={handleFileChange}
                     />
 
-                    <div className="my-2"></div>
+                    <div>
+                        <PortfolioSelectionSection
+                            portfolios={portfolios}
+                            selectedPortfolio={selectedPortfolio}
+                            handlePortfolioSelect={handlePortfolioSelect}
+                            handleCreatePortfolio={handleCreatePortfolio}
+                            handleDeletePortfolio={handleDeletePortfolio}
+                            handleButtonClick={handleButtonClick}
+                            uploading={uploading}
+                        />
 
-                    <AssetsSection
-                        portfolio={showPortfolio}
-                        excludeFields={['price', 'sector', 'industry']}
-                        handlePortfolioChange={handlePortfolioChange}
-                    />
+                        <div className="my-2"></div>
 
-                    {validPortfolio ? (
-                        <>
-                            <div className="my-2"></div>
+                        <AssetsSection
+                            portfolio={showPortfolio}
+                            excludeFields={isMobile ? [
+                                'price', 
+                                'sector', 
+                                'industry',   
+                                'name', 
+                                'ytdReturn', 
+                                'annual3YrsReturn', 
+                                'volatility', 
+                                'momentum', 
+                                'beta', 
+                                'annualReturn'
+                              ] : [
+                                'price',
+                                'priorReturn',
+                                'posteriorReturn',
+                                'industry'
+                              ]}
+                            handlePortfolioChange={handlePortfolioChange}
+                        />
 
-                            <CorrelationMatrixSection
-                                correlationMatrix={correlationMatrix}
-                                stocksOrder={stocksOrder}
-                            />
+                        {validPortfolio ? (
+                            <>
+                                <div className="my-2"></div>
 
-                            <div className="my-2"></div>
+                                <CorrelationMatrixSection
+                                    correlationMatrix={correlationMatrix}
+                                    stocksOrder={stocksOrder}
+                                />
 
-                            <InvestorsViewSection
-                                investorViews={
-                                    portfolioAndInvestorViews.investorViews
-                                }
-                                setShowPopup={setShowPopup}
-                                onRemoveView={handleRemoveView}
-                            />
+                                <div className="my-2"></div>
 
-                            <div className="my-2"></div>
+                                <InvestorsViewSection
+                                    investorViews={
+                                        portfolioAndInvestorViews.investorViews
+                                    }
+                                    setShowPopup={setShowPopup}
+                                    onRemoveView={handleRemoveView}
+                                />
 
-                            <ConstraintSection
-                                limits={limits}
-                                selectedMetric={selectedMetric}
-                                setSelectedMetric={setSelectedMetric}
-                                sliderValue={sliderValue}
-                                setSliderValue={setSliderValue}
-                                handleOptimize={handleOptimize}
-                            />
-                        </>
-                    ) : (
-                        <div className="text-red-500">
-                            Please add at least 2 stocks to the portfolio to
-                            view the correlation matrix and other details.
-                        </div>
-                    )}
-                    <AddViewPopup
-                        isVisible={showPopup}
-                        onClose={() => setShowPopup(false)}
-                        onSave={handleAddView}
-                        portfolio={portfolioAndInvestorViews.assets.map(
-                            (stock) => ({
-                                symbol: stock.symbol,
-                            })
+                                <div className="my-2"></div>
+
+                                <ConstraintSection
+                                    limits={limits}
+                                    selectedMetric={selectedMetric}
+                                    setSelectedMetric={setSelectedMetric}
+                                    sliderValue={sliderValue}
+                                    setSliderValue={setSliderValue}
+                                    handleOptimize={handleOptimize}
+                                />
+                            </>
+                        ) : (
+                            <div className="text-red-500">
+                                Please add at least 2 stocks to the portfolio to
+                                view the correlation matrix and other details.
+                            </div>
                         )}
-                    />
-                    <CreateStockPopup
-                        isVisible={showCreatePortfolioPopup}
-                        onCancel={handleCancelCreatePortfolio}
-                        onSave={handleSaveNewPortfolio}
-                        newPortfolioName={newPortfolioName}
-                        setNewPortfolioName={setNewPortfolioName}
-                    />
+                        <AddViewPopup
+                            isVisible={showPopup}
+                            onClose={() => setShowPopup(false)}
+                            onSave={handleAddView}
+                            portfolio={portfolioAndInvestorViews.assets.map(
+                                (stock) => ({
+                                    symbol: stock.symbol,
+                                })
+                            )}
+                        />
+                        <CreateStockPopup
+                            isVisible={showCreatePortfolioPopup}
+                            onCancel={handleCancelCreatePortfolio}
+                            onSave={handleSaveNewPortfolio}
+                            newPortfolioName={newPortfolioName}
+                            setNewPortfolioName={setNewPortfolioName}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

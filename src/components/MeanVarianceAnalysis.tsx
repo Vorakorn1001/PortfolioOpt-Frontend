@@ -1,5 +1,6 @@
 import React from 'react';
 import { Scatter } from 'react-chartjs-2';
+import { useMediaQuery } from '@/utils/helper';
 import { Chart, ChartEvent, ActiveElement } from 'chart.js';
 
 interface PortfolioData {
@@ -64,55 +65,57 @@ const MeanVarianceAnalysis: React.FC<MeanVarianceAnalysisProps> = ({
         }
     };
 
+    const isMobile = useMediaQuery('(max-width: 767px)');
+
     return (
         <section>
+        <div
+          className="flex-1 p-2 bg-white rounded-2xl"
+          // If you want the main container to dynamically change height:
+          style={{ height: isMobile ? 'auto' : '550px' }}
+        >
+          <div className="bg-white rounded-2xl overflow-hidden p-4 h-full">
+            <h1 className="text-xl font-bold mb-4">Mean-Variance Graph</h1>
+            <div className="py-3" />
             <div
-                className="flex-1 p-2 bg-white rounded-2xl"
-                style={{ height: '550px' }}
+              className="flex justify-center items-center h-full"
+              // Conditionally change the chart area height:
+              style={{ height: isMobile ? '280px' : '400px' }}
             >
-                <div className="bg-white rounded-2xl overflow-hidden p-4 h-full">
-                    <h1 className="text-xl font-bold mb-4">
-                        Mean-Variance Graph
-                    </h1>
-                    <div className="py-3" />
-                    <div
-                        className="flex justify-center items-center h-full"
-                        style={{ height: '400px' }}
-                    >
-                        <Scatter
-                            data={chartData}
-                            options={{
-                                onClick: handlePointClick,
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: {
-                                        display: false,
-                                    },
-                                    colors: {
-                                        enabled: true,
-                                    },
-                                },
-                                scales: {
-                                    x: {
-                                        title: {
-                                            display: true,
-                                            text: 'Volatility',
-                                        },
-                                    },
-                                    y: {
-                                        title: {
-                                            display: true,
-                                            text: 'Return',
-                                        },
-                                    },
-                                },
-                            }}
-                        />
-                    </div>
-                </div>
+              <Scatter
+                data={chartData}
+                options={{
+                  onClick: handlePointClick,
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    colors: {
+                      enabled: true,
+                    },
+                  },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: 'Volatility',
+                      },
+                    },
+                    y: {
+                      title: {
+                        display: true,
+                        text: 'Return',
+                      },
+                    },
+                  },
+                }}
+              />
             </div>
-        </section>
+          </div>
+        </div>
+      </section>
     );
 };
 

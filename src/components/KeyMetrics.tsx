@@ -1,4 +1,5 @@
 import React from 'react';
+import { useMediaQuery } from '@/utils/helper';
 
 interface Metric {
     label: string;
@@ -35,11 +36,22 @@ const colorLabels = [
 
 const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics }) => {
     const validMetrics = Array.isArray(metrics) ? metrics : defaultMetrics;
+    const isMobile = useMediaQuery('(max-width: 767px)');
 
     return (
         <div className="p-2 bg-white rounded-2xl">
             <div className="bg-white rounded-2xl overflow-hidden p-4">
-                <h1 className="text-xl font-bold mb-4">Portfolio Metrics</h1>
+                {/* 
+                  Use `text-base` on mobile, `text-xl` on larger screens 
+                */}
+                <h1
+                    className={`
+                        mb-4 font-bold 
+                        ${isMobile ? 'text-base' : 'text-xl'}
+                    `}
+                >
+                    Portfolio Metrics
+                </h1>
                 <div className="grid grid-cols-6 gap-4">
                     {validMetrics.map((metric) => {
                         let value = metric.value;
@@ -56,8 +68,8 @@ const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics }) => {
                                     numericValue > 0
                                         ? 'text-green-500'
                                         : numericValue < 0
-                                          ? 'text-red-500'
-                                          : 'text-black';
+                                            ? 'text-red-500'
+                                            : 'text-black';
                             }
                         }
 
@@ -66,11 +78,22 @@ const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics }) => {
                                 key={metric.label}
                                 className="text-center flex flex-col justify-between"
                             >
-                                <h3 className="text-sm font-semibold">
+                                {/* 
+                                  Smaller on mobile, normal on larger screens
+                                */}
+                                <h3
+                                    className={`
+                                        font-semibold 
+                                        ${isMobile ? 'text-xs' : 'text-sm'}
+                                    `}
+                                >
                                     {metric.label}
                                 </h3>
                                 <p
-                                    className={`text-lg font-bold ${colorClass}`}
+                                    className={`
+                                        font-bold ${colorClass} 
+                                        ${isMobile ? 'text-sm' : 'text-lg'}
+                                    `}
                                 >
                                     {value}
                                 </p>
