@@ -1,6 +1,5 @@
 'use client';
 
-import StockData from '@/interfaces/stock.interface';
 import OptimizeSkeleton from '@/components/OptimizeSkeleton';
 import React, { useEffect, useState } from 'react';
 import { useMediaQuery } from '@/utils/helper';
