@@ -3,7 +3,7 @@ import StockData from '@/interfaces/stock.interface';
 
 interface AddRemoveButtonProps {
     stock: StockData;
-    onChange: (updatedPortfolio: StockData[]) => void; // Callback to update parent state
+    onChange: (updatedPortfolio: string[]) => void; // Callback to update parent state
 }
 
 const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
@@ -24,9 +24,9 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
         ) {
             const activePortfolio =
                 portfolioData.portfolios[portfolioData.activePortfolio].assets;
-
+            
             const exists = activePortfolio.some(
-                (item: StockData) => item.id === stock.id
+                (item: string) => item === stock.symbol
             );
             setIsInPortfolio(exists);
         }
@@ -42,9 +42,10 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
             const activePortfolio =
                 portfolioData.portfolios[activePortfolioName].assets;
 
-            const updatedPortfolio = [...activePortfolio, stock];
+            const updatedPortfolio = [...activePortfolio, stock.symbol];
+            
             portfolioData.portfolios[activePortfolioName].assets =
-                updatedPortfolio;
+            updatedPortfolio;
 
             localStorage.setItem(
                 'portfolioData',
@@ -66,17 +67,17 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
                 portfolioData.portfolios[activePortfolioName].assets;
 
             const updatedPortfolio = activePortfolio.filter(
-                (item: StockData) => item.id !== stock.id
+                (item: string) => item !== stock.symbol
             );
-            portfolioData.portfolios[activePortfolioName].assets =
-                updatedPortfolio;
+
+            portfolioData.portfolios[activePortfolioName].assets = updatedPortfolio;
 
             localStorage.setItem(
                 'portfolioData',
                 JSON.stringify(portfolioData)
             );
             setIsInPortfolio(false);
-            onChange(updatedPortfolio); // Notify parent about the change
+            onChange(updatedPortfolio);
         }
     };
 

@@ -47,7 +47,10 @@ export default function RedirectPage() {
                 activePortfolio: activePortfolio,
             };
 
-            const payload = { user: userData, portfolio: savedPortfolioData };
+            const payload = { 
+                user: userData, 
+                portfolios: savedPortfolioData 
+            };
             const response = await axios.post(signInURL, payload);
             if (response.status === 200) {
                 localStorage.setItem(

@@ -67,18 +67,83 @@ const ConstraintSection: React.FC<ConstraintSectionProps> = ({
                                 </label>
                             </div>
                             <div className="flex-1 text-center w-full">
-                                <input
-                                    suppressHydrationWarning
-                                    type="range"
-                                    min={min}
-                                    max={max}
-                                    className="w-full"
-                                    value={sliderValue}
-                                    onChange={(e) =>
-                                        setSliderValue(Number(e.target.value))
-                                    }
-                                    style={{ accentColor: 'black' }}
-                                />
+                            <>
+  <input
+    suppressHydrationWarning
+    type="range"
+    min={min}
+    max={max}
+    className="w-full custom-slider"
+    value={sliderValue}
+    onChange={(e) => setSliderValue(Number(e.target.value))}
+    style={{
+      // Calculate the fill percentage
+      background: `linear-gradient(to right, black 0%, black ${
+        ((sliderValue - min) / (max - min)) * 100
+      }%, #ddd ${
+        ((sliderValue - min) / (max - min)) * 100
+      }%, #ddd 100%)`,
+      accentColor: 'black', // For browsers that support it
+    }}
+  />
+  <style jsx>{`
+    /* Remove the native appearance on all browsers, including Safari */
+    .custom-slider {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    /* Make the track transparent so that the input background shows through */
+    .custom-slider::-webkit-slider-runnable-track {
+      height: 4px;
+      background: transparent;
+      border-radius: 2px;
+    }
+    .custom-slider::-moz-range-track {
+      height: 4px;
+      background: transparent;
+      border-radius: 2px;
+    }
+    .custom-slider::-ms-track {
+      height: 4px;
+      background: transparent;
+      border-color: transparent;
+      color: transparent;
+    }
+    /* Style the thumb as a centered black circle */
+    .custom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      background: black;
+      cursor: pointer;
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .custom-slider::-moz-range-thumb {
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      background: black;
+      cursor: pointer;
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .custom-slider::-ms-thumb {
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      background: black;
+      cursor: pointer;
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  `}</style>
+</>
+
                                 <p className="text-center mt-2">
                                     Adjust level: {sliderValue}%
                                 </p>

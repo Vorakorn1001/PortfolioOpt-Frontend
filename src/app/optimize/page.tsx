@@ -59,14 +59,13 @@ const Optimize: React.FC = () => {
             try {
                 const optimizeUrlWithTimeFrame =
                     optimizeUrl + '?timeframe=' + selectedTimeFrame;
-                const response = await axios.post(optimizeUrlWithTimeFrame, {
-                    stocks: savedPortfolio.map(
-                        (stock: StockData) => stock.symbol
-                    ),
+                const payload = {
+                    stocks: savedPortfolio,
                     timeframe: selectedTimeFrame,
                     investorViews: savedInvestorViews,
                     constraint: savedConstraint,
-                });
+                }
+                const response = await axios.post(optimizeUrlWithTimeFrame, payload);
                 setStocksOrder(response.data.stocks);
                 setPortfolioWeights(response.data.weights);
                 setDiversificationData(response.data.diversification);

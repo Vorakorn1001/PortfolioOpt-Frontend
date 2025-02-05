@@ -19,7 +19,7 @@ import CreateStockPopup from '@/components/CreateStockPopup';
 import NavBar from '@/components/NavBar';
 
 interface portfolioAndInvestorViews {
-    assets: StockData[];
+    assets: string[];
     investorViews: InvestorView[];
 }
 
@@ -40,7 +40,7 @@ const Portfolio: React.FC = () => {
     const [portfolios, setPortfolios] = useState<string[]>([]);
     const [selectedPortfolio, setSelectedPortfolio] = useState<string>('');
 
-    const PortfolioUrl = '/api/backend/portfolio/init';
+    const initPortfolioUrl = '/api/backend/portfolio/init';
     const uploadIBKRUrl = '/api/backend/ibkr/upload';
     const updatePortfolioUrl = '/api/backend/user/updatePortfolio';
     const deletePortfolioUrl = '/api/backend/user/deletePortfolio';
@@ -49,6 +49,32 @@ const Portfolio: React.FC = () => {
     const { data: session, status } = useSession();
 
     const isMobile = useMediaQuery('(max-width: 767px)');
+    const [excludeFields, setExcludeFields] = useState<string[]>(fields);
+
+    useEffect(() => {
+        if (isMobile) {
+            setExcludeFields([
+                'price',
+                'industry',
+                'priorReturn',
+                'posteriorReturn',
+                'name',
+                'ytdReturn',
+                'returns',
+                'annual5YrsReturn',
+                'annual3YrsReturn',
+                'annual1YrReturn',
+                'annualReturn',
+                'sector',
+            ]);
+        } else {
+            setExcludeFields([
+                'price',
+                'returns',
+                'industry',
+            ]);
+        }
+    }, [isMobile]);
 
     useEffect(() => {
         const savedPortfolioData = JSON.parse(
@@ -87,8 +113,7 @@ const Portfolio: React.FC = () => {
 
     const getNonConflictingViews = (portfolio: portfolioAndInvestorViews) => {
         const views = portfolio.investorViews;
-        const assets = portfolio.assets;
-        const symbols = assets.map((stock) => stock.symbol);
+        const symbols = portfolio.assets;
         return views.filter(
             (view) =>
                 symbols.includes(view.asset1) &&
@@ -98,8 +123,7 @@ const Portfolio: React.FC = () => {
 
     const hasConflictingViews = (portfolio: portfolioAndInvestorViews) => {
         const views = portfolio.investorViews;
-        const assets = portfolio.assets;
-        const symbols = assets.map((stock) => stock.symbol);
+        const symbols = portfolio.assets;
         return views.some(
             (view) =>
                 !symbols.includes(view.asset1) ||
@@ -115,8 +139,9 @@ const Portfolio: React.FC = () => {
             localStorage.getItem('portfolioData') || 'null'
         );
         if (!savedPortfolioData) return;
-        // const activePortfolioName = savedPortfolioData.activePortfolio;
-        // if (!activePortfolioName) return;
+
+        const activePortfolioName = savedPortfolioData.activePortfolio;
+        if (!activePortfolioName) return;
 
         portfolio.investorViews = getNonConflictingViews(portfolio);
 
@@ -140,7 +165,7 @@ const Portfolio: React.FC = () => {
                 user: userData,
                 portfolio: portfolio,
             };
-            // console.log("Update Payload", payload);
+            console.log("Update Payload", payload);
             await axios.post(updatePortfolioUrl, payload);
         }
     };
@@ -154,8 +179,10 @@ const Portfolio: React.FC = () => {
             updatePortfolio(portfolioAndInvestorViews, selectedPortfolio);
 
             if (portfolioAndInvestorViews.assets.length < 2) {
-                // console.log("Portfolio", portfolioAndInvestorViews.assets);
-                setShowPortfolio(portfolioAndInvestorViews.assets);
+                const newShowPortfolio = showPortfolio.filter(
+                    (stock) => portfolioAndInvestorViews.assets.includes(stock.symbol)
+                );
+                setShowPortfolio(newShowPortfolio)
                 setValidPortfolio(false);
                 return;
             } else {
@@ -163,19 +190,18 @@ const Portfolio: React.FC = () => {
             }
 
             try {
-                const response = await axios.post(PortfolioUrl, {
-                    stocks: portfolioAndInvestorViews.assets.map(
-                        (stock) => stock.symbol
-                    ),
+                const payload = {
+                    stocks: portfolioAndInvestorViews.assets,
                     investorViews: portfolioAndInvestorViews.investorViews,
-                });
+                };
+                const response = await axios.post(initPortfolioUrl, payload);
 
-                const stocksOrder = response.data.stocks;
+                const stocksData: StockData[] = response.data.stocksData;
                 const correlationMatrix = response.data.correlationMatrix;
                 const priorReturns = response.data.priorReturns;
                 const posteriorReturns = response.data.posteriorReturns;
                 const responseLimits = response.data.limits;
-                setStocksOrder(stocksOrder);
+                setStocksOrder(stocksData.map((stock: StockData) => stock.symbol));
                 setCorrelationMatrix(correlationMatrix);
                 setLimits(responseLimits);
                 setSliderValue(
@@ -184,11 +210,8 @@ const Portfolio: React.FC = () => {
                         : responseLimits.minVolatility
                 );
 
-                const enrichedPortfolio: StockData[] = stocksOrder.map(
-                    (symbol: string, index: number) => {
-                        const stock = portfolioAndInvestorViews.assets.find(
-                            (s) => s.symbol === symbol
-                        );
+                const enrichedPortfolio: StockData[] = stocksData.map(
+                    (stock: StockData, index: number) => {
                         return {
                             ...stock,
                             priorReturn: priorReturns[index],
@@ -207,18 +230,16 @@ const Portfolio: React.FC = () => {
     // selectedPortfolio listener
     useEffect(() => {
         if (!isInitialFetchDone) return;
-        // console.log("SelectedPortfolio", selectedPortfolio);
         const savedPortfolioData = JSON.parse(
             localStorage.getItem('portfolioData') || 'null'
         );
         if (!savedPortfolioData) return;
-        // console.log("Save", savedPortfolioData.portfolios[selectedPortfolio]);
         setPortfolioAndInvestorViews(
             savedPortfolioData.portfolios[selectedPortfolio]
         );
     }, [selectedPortfolio]);
 
-    const handlePortfolioChange = async (updatedPortfolio: StockData[]) => {
+    const handlePortfolioChange = async (updatedPortfolio: string[]) => {
         const updatedPortfolioAndInvestorViews = {
             assets: updatedPortfolio,
             investorViews: portfolioAndInvestorViews.investorViews,
@@ -429,25 +450,7 @@ const Portfolio: React.FC = () => {
 
                         <AssetsSection
                             portfolio={showPortfolio}
-                            excludeFields={
-                                isMobile
-                                    ? [
-                                          'price',
-                                          'sector',
-                                          'industry',
-                                          'name',
-                                          'ytdReturn',
-                                          'annual3YrsReturn',
-                                          'volatility',
-                                          'momentum',
-                                          'beta',
-                                          'annualReturn',
-                                      ]
-                                    : [
-                                          'price',
-                                          'industry',
-                                      ]
-                            }
+                            excludeFields={excludeFields}
                             handlePortfolioChange={handlePortfolioChange}
                         />
 
@@ -493,7 +496,7 @@ const Portfolio: React.FC = () => {
                             onSave={handleAddView}
                             portfolio={portfolioAndInvestorViews.assets.map(
                                 (stock) => ({
-                                    symbol: stock.symbol,
+                                    symbol: stock,
                                 })
                             )}
                         />
@@ -524,3 +527,23 @@ const initialPortfolioAndInvestorViews: portfolioAndInvestorViews = {
     assets: [],
     investorViews: [],
 };
+
+const fields = [
+    'symbol',
+    'name',
+    'price',
+    'annualReturn',
+    'annual5YrsReturn',
+    'annual3YrsReturn',
+    'annual1YrReturn',
+    'ytdReturn',
+    'returns',
+    'momentum',
+    'beta',
+    'volatility',
+    'sector',
+    'industry',
+    'marketCap',
+    'priorReturn',
+    'posteriorReturn',
+];

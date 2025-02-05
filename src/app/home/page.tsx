@@ -21,15 +21,11 @@ const Home: React.FC = () => {
     const [assets, setAssets] = useState<StockData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+
     const { data: session, status } = useSession();
 
     const isMobile = useMediaQuery('(max-width: 767px)');
-    const [excludeFields, setExcludeFields] = useState<string[]>([
-        'price',
-        'priorReturn',
-        'posteriorReturn',
-        'industry',
-    ]);
+    const [excludeFields, setExcludeFields] = useState<string[]>(fields);
 
     useEffect(() => {
         if (isMobile) {
@@ -40,15 +36,16 @@ const Home: React.FC = () => {
                 'posteriorReturn',
                 'name',
                 'ytdReturn',
+                'annual5YrsReturn',
                 'annual3YrsReturn',
-                'volatility',
-                'momentum',
-                'beta',
+                'annual1YrReturn',
                 'annualReturn',
+                'sector',
             ]);
         } else {
             setExcludeFields([
                 'price',
+                'returns',
                 'priorReturn',
                 'posteriorReturn',
                 'industry',
@@ -148,7 +145,7 @@ const Home: React.FC = () => {
         };
     }, [handleScroll]);
 
-    const handlePortfolioChange = async (updatedPortfolio: StockData[]) => {
+    const handlePortfolioChange = async (updatedPortfolio: string[]) => {
         const savedPortfolioData = JSON.parse(
             localStorage.getItem('portfolioData') || 'null'
         );
@@ -181,7 +178,7 @@ const Home: React.FC = () => {
             };
             const payload = {
                 user: userData,
-                portfolio: updatedPortfolio,
+                assets: updatedPortfolio,
             };
             await axios.post(updateAssetsUrl, payload);
         }
@@ -242,3 +239,23 @@ const initialRadarData = {
         },
     ],
 };
+
+const fields = [
+    'symbol',
+    'name',
+    'price',
+    'annualReturn',
+    'annual5YrsReturn',
+    'annual3YrsReturn',
+    'annual1YrReturn',
+    'ytdReturn',
+    'returns',
+    'momentum',
+    'beta',
+    'volatility',
+    'sector',
+    'industry',
+    'marketCap',
+    'priorReturn',
+    'posteriorReturn',
+];
