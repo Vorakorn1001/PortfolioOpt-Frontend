@@ -163,8 +163,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         setDraggedPointIndex(null);
     };
 
-    const maxPoints = 5;
-
     const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
         if (!dragging || draggedPointIndex === null) return;
     
@@ -194,7 +192,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         const maxDistance = Math.min(centerX - left, centerY - top);
     
         // Adjust sensitivity by requiring a minimum threshold distance for a step change
-        const sensitivity = 0.1;
+        const sensitivity = 0.3;
         const scaledValue = (distanceFromCenter / maxDistance) * 5; // Adjusted for 5 steps
         const stepThreshold = 1 * sensitivity; // Distance required for each step
         const newValue = Math.round(scaledValue / stepThreshold) * stepThreshold;
