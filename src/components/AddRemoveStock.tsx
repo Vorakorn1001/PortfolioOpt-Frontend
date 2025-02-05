@@ -24,7 +24,7 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
         ) {
             const activePortfolio =
                 portfolioData.portfolios[portfolioData.activePortfolio].assets;
-            
+
             const exists = activePortfolio.some(
                 (item: string) => item === stock.symbol
             );
@@ -43,9 +43,9 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
                 portfolioData.portfolios[activePortfolioName].assets;
 
             const updatedPortfolio = [...activePortfolio, stock.symbol];
-            
+
             portfolioData.portfolios[activePortfolioName].assets =
-            updatedPortfolio;
+                updatedPortfolio;
 
             localStorage.setItem(
                 'portfolioData',
@@ -70,7 +70,8 @@ const AddRemoveButton: React.FC<AddRemoveButtonProps> = ({
                 (item: string) => item !== stock.symbol
             );
 
-            portfolioData.portfolios[activePortfolioName].assets = updatedPortfolio;
+            portfolioData.portfolios[activePortfolioName].assets =
+                updatedPortfolio;
 
             localStorage.setItem(
                 'portfolioData',

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useMediaQuery } from '@/utils/helper';
 import { Radar } from 'react-chartjs-2';
 import {
     Chart,
@@ -110,9 +111,9 @@ const FilterSection: React.FC<FilterSectionProps> = ({
 
     const chartRef = useRef<Chart<'radar'>>(null);
     const [dragging, setDragging] = useState<boolean>(false);
-    const [draggedPointIndex, setDraggedPointIndex] = useState<number | null>(
-        null
-    );
+    const [draggedPointIndex, setDraggedPointIndex] = useState<number | null>(null);
+
+    const isMobile = useMediaQuery('(max-width: 767px)');
 
     const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
@@ -166,32 +167,42 @@ const FilterSection: React.FC<FilterSectionProps> = ({
 
     const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
         if (!dragging || draggedPointIndex === null) return;
-
+    
         const chart = chartRef.current;
         if (!chart) return;
-
+    
+        // Get the chart area boundaries and the current mouse position
         const { top, bottom, left, right } = chart.chartArea;
+        const mouseX = event.nativeEvent.offsetX;
+        const mouseY = event.nativeEvent.offsetY;
+    
+        // If the mouse is outside the chart area, stop dragging immediately
+        if (mouseX < left || mouseX > right || mouseY < top || mouseY > bottom) {
+            console.log("OUT")
+            setDragging(false);
+            setDraggedPointIndex(null);
+            return;
+        }
+    
+        // Continue with your existing logic to update the dragged point...
         const centerX = (left + right) / 2;
         const centerY = (top + bottom) / 2;
         const distanceFromCenter = Math.sqrt(
-            Math.pow(event.nativeEvent.offsetX - centerX, 2) +
-                Math.pow(event.nativeEvent.offsetY - centerY, 2)
+            Math.pow(mouseX - centerX, 2) +
+            Math.pow(mouseY - centerY, 2)
         );
         const maxDistance = Math.min(centerX - left, centerY - top);
-
+    
         // Adjust sensitivity by requiring a minimum threshold distance for a step change
         const sensitivity = 0.1;
         const scaledValue = (distanceFromCenter / maxDistance) * 5; // Adjusted for 5 steps
         const stepThreshold = 1 * sensitivity; // Distance required for each step
-        const newValue =
-            Math.round(scaledValue / stepThreshold) * stepThreshold;
-
+        const newValue = Math.round(scaledValue / stepThreshold) * stepThreshold;
+    
         // Clamp the value to ensure it stays within bounds
-        const clampedValue = Math.max(
-            1,
-            Math.min(maxPoints, Math.round(newValue))
-        ); // Adjusted for 5 steps
-
+        const maxPoints = 5;
+        const clampedValue = Math.max(1, Math.min(maxPoints, Math.round(newValue)));
+    
         // Update the data for the dragged point
         const newData = radarData.datasets[0].data.map((value, index) => {
             if (index === draggedPointIndex) {
@@ -199,15 +210,15 @@ const FilterSection: React.FC<FilterSectionProps> = ({
             }
             return value;
         });
-
+    
         const hasChanged = !newData.every(
             (value, index) => value === radarData.datasets[0].data[index]
         );
-
+    
         if (!hasChanged) {
             return;
         }
-
+    
         setRadarData({
             ...radarData,
             datasets: [
@@ -219,38 +230,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         });
     };
 
-    const handleTouchStart = (e: React.TouchEvent) => {
-        const chart = chartRef.current;
-        if (!chart) return;
-
-        const nativeEvent = e.nativeEvent;
-
-        const points = chart.getElementsAtEventForMode(
-            nativeEvent, // Pass the native event
-            'nearest',
-            { intersect: true },
-            false
-        );
-
-        if (points.length) {
-            const pointIndex = points[0].index;
-            const newData = [...radarData.datasets[0].data];
-            newData[pointIndex] = Math.max(
-                (newData[pointIndex] + 1) % (maxPoints + 1),
-                1
-            );
-
-            setRadarData({
-                ...radarData,
-                datasets: [
-                    {
-                        ...radarData.datasets[0],
-                        data: newData,
-                    },
-                ],
-            });
-        }
-    };
+    const handleMouseLeave = () => {        
+        setDragging(false);
+        setDraggedPointIndex(null);
+    }
 
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [marketCapDropdownOpen, setMarketCapDropdownOpen] = useState(false);
@@ -486,33 +469,40 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                     height: '100%', // Expand to available height
                 }}
             >
-                <div
-                    style={{
-                        width: `${radarSizeScale}%`, // Use radarSizeScale for width
-                        maxWidth: '600px', // Increase max width
-                        height: '400px', // Set a larger fixed height
-                    }}
-                >
-                    <Radar
-                        ref={chartRef}
-                        data={radarData}
-                        options={{
-                            ...radarOptions,
-                            maintainAspectRatio: false, // Allow resizing
-                            responsive: true,
-                            elements: {
-                                point: {
-                                    radius: 15,
-                                    hoverRadius: 13,
-                                },
-                            },
+                {!isMobile && (
+                    <div
+                        style={{
+                            width: `${radarSizeScale}%`, // Use radarSizeScale for width
+                            maxWidth: '600px', // Increase max width
+                            height: '400px', // Set a larger fixed height
                         }}
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                        onTouchStart={handleTouchStart}
-                    />
-                </div>
+                    >
+                        <Radar
+                            ref={chartRef}
+                            data={radarData}
+                            options={{
+                                ...radarOptions,
+                                maintainAspectRatio: false, // Allow resizing
+                                responsive: true,
+                                elements: {
+                                    point: {
+                                        radius: 30,
+                                        hoverRadius: 27,
+                                    },
+                                },
+                            }}
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseLeave}
+                        />
+                    </div>
+                )}
+                {
+                    isMobile && (
+                        <div style={{ height: '20px' }}/>
+                    )
+                }
                 <div style={{ height: '20px' }}></div>
                 <button
                     onClick={() => {

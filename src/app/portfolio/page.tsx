@@ -68,11 +68,7 @@ const Portfolio: React.FC = () => {
                 'sector',
             ]);
         } else {
-            setExcludeFields([
-                'price',
-                'returns',
-                'industry',
-            ]);
+            setExcludeFields(['price', 'returns', 'industry']);
         }
     }, [isMobile]);
 
@@ -165,7 +161,7 @@ const Portfolio: React.FC = () => {
                 user: userData,
                 portfolio: portfolio,
             };
-            console.log("Update Payload", payload);
+            console.log('Update Payload', payload);
             await axios.post(updatePortfolioUrl, payload);
         }
     };
@@ -179,10 +175,10 @@ const Portfolio: React.FC = () => {
             updatePortfolio(portfolioAndInvestorViews, selectedPortfolio);
 
             if (portfolioAndInvestorViews.assets.length < 2) {
-                const newShowPortfolio = showPortfolio.filter(
-                    (stock) => portfolioAndInvestorViews.assets.includes(stock.symbol)
+                const newShowPortfolio = showPortfolio.filter((stock) =>
+                    portfolioAndInvestorViews.assets.includes(stock.symbol)
                 );
-                setShowPortfolio(newShowPortfolio)
+                setShowPortfolio(newShowPortfolio);
                 setValidPortfolio(false);
                 return;
             } else {
@@ -201,7 +197,9 @@ const Portfolio: React.FC = () => {
                 const priorReturns = response.data.priorReturns;
                 const posteriorReturns = response.data.posteriorReturns;
                 const responseLimits = response.data.limits;
-                setStocksOrder(stocksData.map((stock: StockData) => stock.symbol));
+                setStocksOrder(
+                    stocksData.map((stock: StockData) => stock.symbol)
+                );
                 setCorrelationMatrix(correlationMatrix);
                 setLimits(responseLimits);
                 setSliderValue(
