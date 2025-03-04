@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
         return [
             {
                 source: '/api/backend/:path*', // Match API requests
-                destination: 'http://poppytaro.trueddns.com:41165/:path*', // Proxy to local backend
+                destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/:path*`, // Proxy to local backend using env variable
             },
         ];
     },
